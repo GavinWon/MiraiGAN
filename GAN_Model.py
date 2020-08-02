@@ -65,7 +65,7 @@ def build_generator(seed_size, channels):
 def build_discriminator():
     model = Sequential()
 
-    model.add(Conv1D(32, kernel_size=3, strides=2, input_shape= (1000, 1), padding="valid")) #padding=same
+    model.add(Conv1D(32, kernel_size=3, strides=2, input_shape= (115, 1), padding="valid")) #padding=same
     model.add(LeakyReLU(alpha=0.2))
 
     model.add(Dropout(0.25))
