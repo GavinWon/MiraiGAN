@@ -6,8 +6,11 @@ Created on Sat Aug 22 18:33:19 2020
 """
 
 import csv
+import pandas as pd
 
 addType()
+combineDataset()
+createLabels()
 
 def addType():
     feature_text = "Type"
@@ -32,28 +35,29 @@ def addType():
             csv_writer.writerow(row)
 
 def combineDataset():
-    list = []
-with open("all_data2.csv", "r") as readfile:
-    reader = csv.reader(readfile)
-    next(reader)
-    previousRow = next(reader)
-    list.append(previousRow)
-    for row in reader:
-        if row[1:] != previousRow[1:] and notCorrupted(row) and moreThan1000(row) and moreThan100Files(row):
-            list.append(row)
-        previousRow = row
-
-dict = checkFilesPerFamily()
-
-print(dict)
-
-findStart()
-        
-        
-        
-with open('all_data2_new.csv', 'w', newline = '') as writeFile:
-    writer = csv.writer(writeFile)
-    writer.writerows(list)
+    all_filenames = ["ack_new.csv", "scan_new.csv", "syn_new.csv", "udp_new.csv", "udpplain_new.csv", "benign_traffic_new.csv"]
+    combined_csv = pd.concat([pd.read_csv(f) for f in all_filenames ])
+    combined_csv.to_csv( "mirai_testing.csv", index=False, encoding='utf-8-sig')
+    # list = []
+    # for name in ["ack", "benign_traffic", "scan", "syn", "udp", "udpplain"]:
+    #     filename = "All CSV\\" + name + "_new.csv"
+    #     with open(filename, "r") as readfile:
+    #         reader = csv.reader(readfile)
+    #         next(reader)
+    #         for row in reader:
+    #             list.append(row)     
+    #     with open('mirai_testing.csv', 'w', newline = '') as writeFile:
+    #         writer = csv.writer(writeFile)
+    #         writer.writerows(list)
+    #     list = []
     
 def createLabels():
+    with open("mirai_testing_labels.csv", 'w', newline='') as file:
+        csv_writer = csv.writer(file)
+        csv_writer.writerow(["Label"])
+        for i in range(514860):
+            csv_writer.writerow("1")
+        for i in range(19528):
+            csv_writer.writerow("0")
+        
     
