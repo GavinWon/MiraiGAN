@@ -21,6 +21,7 @@ import sys
 sys.path.append("D:\\Repos\\MiraiGAN")
 from GAN_Model import *
 
+
 dataset = pd.read_csv('Mirai_dataset.csv')
 print(dataset.head())
 labels = pd.read_csv('mirai_labels.csv')
@@ -40,5 +41,15 @@ disc.compile(loss = 'binary_crossentropy', optimizer = Adam(learning_rate=0.001)
 history = model.fit(X_train, Y_train, epochs = 25, batch_size = 100, validation_data = (X_test, Y_test), shuffle = True)
 
 #Saving disc model
+file_name = "pretrain_disc" + str(i)
+    
+json = file_name + ".json"
+h5 = file_name + ".h5"
+    
+model_json = model.to_json()
+with open(json, "w") as json_file:
+    json_file.write(model_json)
+    model.save_weights(h5)
 
 #Metrics?
+
