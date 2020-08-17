@@ -26,12 +26,18 @@ print(dataset.head())
 labels = pd.read_csv('mirai_labels.csv')
 
 #Getting X and Y Data
-X = dataset.iloc[:, 1:]
-Y = labels.iloc[:, :]
+X_train = dataset.iloc[:, 1:]
+Y_train = labels.iloc[:, :]
+
+print(X.shape)
+
+X_train = tf.reshape(X_train, (7764137, 115, 1))
 
 disc = build_discriminator()
+disc.compile(loss = 'binary_crossentropy', optimizer = Adam(learning_rate=0.001), metrics=['accuracy']) #default Adam optimizer
 
 #Training the Discriminator on datset
+history = model.fit(X_train, Y_train, epochs = 25, batch_size = 100, validation_data = (X_test, Y_test), shuffle = True)
 
 #Saving disc model
 
