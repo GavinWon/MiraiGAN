@@ -16,5 +16,23 @@ from tensorflow.keras.models import Sequential, Model, load_model
 from tensorflow.keras.optimizers import Adam
 import numpy as np
 import pandas as pd
+import sys
+
+sys.path.append("D:\\Repos\\MiraiGAN")
+from GAN_Model import *
 
 dataset = pd.read_csv('Mirai_dataset.csv')
+print(dataset.head())
+labels = pd.read_csv('mirai_labels.csv')
+
+#Getting X and Y Data
+X = dataset.iloc[:, 1:]
+Y = labels.iloc[:, :]
+
+disc = build_discriminator()
+
+#Training the Discriminator on datset
+
+#Saving disc model
+
+#Metrics?
