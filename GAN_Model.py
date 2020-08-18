@@ -54,7 +54,7 @@ def build_generator(seed_size, channels):
     return model
 
 
-def build_discriminator(image_shape):
+def build_discriminator():
     model = Sequential()
 
     model.add(Conv2D(32, kernel_size=3, strides=2, input_shape=image_shape, 
@@ -87,3 +87,6 @@ def build_discriminator(image_shape):
     model.add(Dense(1, activation='sigmoid'))
 
     return model
+
+def printabc():
+    print("Hi")
