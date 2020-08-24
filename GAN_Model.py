@@ -52,17 +52,17 @@ def build_generator(z):
     
     model.add(Dense(115))
     
+    return model
    
     # Output resolution, additional upsampling
     # model.add(Conv2D(128,kernel_size=3,padding="same")) #padding=same
     # model.add(BatchNormalization(momentum=0.8))
     # model.add(LeakyReLU()
-
-
+    
     # Final CNN layer
     # model.add(Activation("tanh"))
 
-    return model
+    
 
 def generator_loss(fake_output):
     return cross_entropy(tf.ones_like(fake_output), fake_output)
