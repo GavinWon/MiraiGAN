@@ -101,6 +101,10 @@ def build_discriminator():
 
     return model
 
+def discriminator(packets):
+    global disc
+    
+
 
 def discriminator_loss(real_output, fake_output):
     real_loss = cross_entropy(tf.ones_like(real_output), real_output)
