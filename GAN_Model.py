@@ -29,10 +29,10 @@ cross_entropy = tf.keras.losses.BinaryCrossentropy(from_logits=True)
 # model.add(Conv1D(filters= 128, kernel_size=3, activation ='relu',strides = 2, padding = 'valid'))
 # model.add(MaxPooling1D(pool_size=2))
 
-def build_generator(z):
+def build_generator(seed_size):
     model = Sequential()
 
-    model.add(Dense(128, inputs = z, activation="relu"))
+    model.add(Dense(128, inputs_dim = seed_size, activation="relu"))
 
     model.add(Conv2DTranspose(512,kernel_size=3,padding="same")) #padding=same
     model.add(BatchNormalization()) #momentum=0.8
@@ -103,7 +103,7 @@ def build_discriminator():
 
 def discriminator(packets):
     global disc
-    
+        
 
 
 def discriminator_loss(real_output, fake_output):
@@ -137,4 +137,5 @@ def plot_loss(h):
     plt.show()
 
 def printabc():
-    print("Hi")
+    global x
+    print(x + 1)
