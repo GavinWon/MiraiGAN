@@ -36,7 +36,20 @@ X_train = dataset_training.iloc[:, 1:]
 Y_train = labels_training.iloc[:, :]
 
 X_test = dataset_testing.iloc[:, :-1]
-Y_test = labels_testing.iloc[:, :]    
+Y_test = labels_testing.iloc[:, :]
+
+from sklearn.preprocessing import StandardScaler
+scaler = StandardScaler()
+X_train = scaler.fit_transform(X_train)
+X_test = scaler.transform(X_test)
+
+test = np.array(X_train)
+
+test = np.array(X_train)
+print(np.mean(test))
+print(np.amin(test))
+print(np.amax(test))
+
 
 print(X.shape)
 
@@ -47,18 +60,31 @@ disc = build_discriminator()
 disc.compile(loss = 'binary_crossentropy', optimizer = Adam(learning_rate=0.001), metrics=['accuracy']) #default Adam optimizer
 
 #Training the Discriminator on datset
-history = disc.fit(X_train, Y_train, epochs = 5, batch_size = 100, validation_data = (X_test, Y_test), shuffle = True)
+history = disc.fit(X_train, Y_train, epochs = 20, batch_size = 100, validation_data = (X_test, Y_test), shuffle = True)
 
 #Saving disc model
-file_name = "pretrain_disc" + str(i)
+file_name = "pretrain_disc"
     
 json = file_name + ".json"
 h5 = file_name + ".h5"
     
-model_json = model.to_json()
+model_json = disc.to_json()
 with open(json, "w") as json_file:
     json_file.write(model_json)
-    model.save_weights(h5)
+    disc.save_weights(h5)
 
-#Metrics?
+#Metrics
 
+from sklearn.metrics import accuracy_score
+preds_training = disc.predict_classes(X_train)
+preds_test = disc.predict_classes(X_test)
+print("Accuracy = {}".format(accuracy_score(Y_test, preds_test)))
+print("Accuracy = {}".format(accuracy_score(Y_train, preds_training)))
+
+from sklearn.metrics import confusion_matrix
+print(confusion_matrix(Y_test, preds_test))
+print(confusion_matrix(Y_train, preds_training))
+plot_acc(history)
+plot_loss(history)
+
+print(disc.summary())
