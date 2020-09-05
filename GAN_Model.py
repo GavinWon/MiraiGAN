@@ -29,24 +29,41 @@ cross_entropy = tf.keras.losses.BinaryCrossentropy(from_logits=True)
 # model.add(Conv1D(filters= 128, kernel_size=3, activation ='relu',strides = 2, padding = 'valid'))
 # model.add(MaxPooling1D(pool_size=2))
 
+import keras.backend as K
+from keras.layers import Conv2DTranspose, Lambda
+
+
+def Conv1DTranspose(input_tensor, filters, kernel_size, strides=2, padding='same'):
+    """
+        input_tensor: tensor, with the shape (batch_size, time_steps, dims)
+        filters: int, output dimension, i.e. the output tensor will have the shape of (batch_size, time_steps, filters)
+        kernel_size: int, size of the convolution kernel
+        strides: int, convolution step size
+        padding: 'same' | 'valid'
+    """
+    x = Lambda(lambda x: K.expand_dims(x, axis=2))(input_tensor)
+    x = Conv2DTranspose(filters=filters, kernel_size=(kernel_size, 1), strides=(strides, 1), padding=padding)(x)
+    x = Lambda(lambda x: K.squeeze(x, axis=2))(x)
+    return x
+
 def build_generator(seed_size):
     model = Sequential()
 
-    model.add(Dense(128, inputs_dim = seed_size, activation="relu"))
+    model.add(Dense(128, input_dim = seed_size, activation="relu"))
 
-    model.add(Conv2DTranspose(512,kernel_size=3,padding="same")) #padding=same
+    model.add(Conv1DTranspose(512,kernel_size=3,padding="same")) #padding=same
     model.add(BatchNormalization()) #momentum=0.8
     model.add(LeakyReLU())
 
-    model.add(Conv2DTranspose(256,kernel_size=3,padding="same")) #padding=same
+    model.add(Conv1DTranspose(256,kernel_size=3,padding="same")) #padding=same
     model.add(BatchNormalization()) #momentum=0.8
     model.add(LeakyReLU())
     
-    model.add(Conv2DTranspose(128, kernel_size=3, strides=2, padding="valid")) #padding=same
+    model.add(Conv1DTranspose(128, kernel_size=3, strides=2, padding="valid")) #padding=same
     model.add(BatchNormalization())
     model.add(LeakyReLU())
     
-    model.add(Conv2DTranspose(64, kernel_size=3, strides=2, padding="valid")) #padding=same
+    model.add(Conv1DTranspose(64, kernel_size=3, strides=2, padding="valid")) #padding=same
     model.add(BatchNormalization())
     model.add(LeakyReLU())
     
@@ -101,8 +118,6 @@ def build_discriminator():
 
     return model
 
-def discriminator(packets):
-    global disc
         
 
 
