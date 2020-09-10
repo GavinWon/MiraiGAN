@@ -82,7 +82,8 @@ discriminator_optimizer = tf.keras.optimizers.Adam(1.5e-4,0.5)
 # GAN Training
 
 def train_step(dataset):
-    seed = tf.random.normal([BATCH_SIZE, SEED_SIZE])
+    seed = tf.random.normal([BATCH_SIZE,SEED_SIZE])
+    print(seed)
     
     with tf.GradientTape() as gen_tape, tf.GradientTape() as disc_tape:
         generated_dataset = generator(seed)
@@ -123,7 +124,6 @@ def train(dataset, epochs):
     epoch_elapsed = time.time()-epoch_start
     print (f'Epoch {epoch+1}, gen loss={g_loss},disc loss={d_loss},'\
            ' {hms_string(epoch_elapsed)}')
-    save_images(epoch,fixed_seed)
 
   elapsed = time.time()-start
   print (f'Training time: {hms_string(elapsed)}')
