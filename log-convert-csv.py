@@ -9,10 +9,10 @@ import csv
 import pandas
 import fileinput
 
-def covertLogToCSV():
-    with open("connlabel34.csv", 'w', newline='') as file:  
+def covertLogToCSV(): #72317 total samples
+    with open("conn.csv", 'w', newline='') as file:  
         # with open("connlabel_benign.csv", 'w', newline='') as file2:         
-        with open("conn34.log.labeled", "r") as readfile:
+        with open("conn.log.txt", "r") as readfile:
             csv_writer_m = csv.writer(file)
             # csv_writer_b = csv.writer(file2)
             
@@ -20,8 +20,10 @@ def covertLogToCSV():
                 readfile.readline()
                 
             l = readfile.readline().split()
-            l = l[1:]
+            l = l[1:-1] #dont include tunnel parents
+            l.append("Label")
             csv_writer_m.writerow(l)
+            
             # csv_writer_b.writerow(l)
             
             readfile.readline()
@@ -29,17 +31,18 @@ def covertLogToCSV():
             Lines = readfile.readlines()
             count = 0
             for line in Lines:
-                l = line.split()
-                if (count % 1000000 == 0):
-                    print(count)
-                if (len(l) < 21):
-                    continue
+                l = line.split()[:-1]
+                l.append("Benign")
+                if "-" in l:
+                    count += 1
+                # if (len(l) < 21):
+                #     continue
                 csv_writer_m.writerow(l)
                 # if (l[21] == "Benign"): #data sample is benign
                 #      csv_writer_b.writerow(l)
                 # else: #data sample is malicious
                 #     csv_writer_m.writerow(l)
-                count += 1
+            print(count)
             
 
 def removeCol():
@@ -58,25 +61,24 @@ def removeCol():
      
 
 def removeRows():
-    #remove rows with - in the row
-    with open('connlabel_malicious_new.csv', 'r') as read_obj:
-        with open('connlabel_malicious_new1.csv', 'w', newline='') as write_obj:
+    #remove rows with - in the row -->66893 left (5425 removed)
+    with open('conn.csv', 'r') as read_obj:
+        with open('conn1.csv', 'w', newline='') as write_obj:
             csv_reader = csv.reader(read_obj)
             csv_writer = csv.writer(write_obj)
             count = 0
+            seen = set()
             for row in csv_reader:
                 check = row[:-1] #dont consider the last column
                 if ("-" not in check):
                     csv_writer.writerow(row)
                     count += 1
-                if (count % 1000000 == 0):
-                    print(count)
             print(count)
             
-    #remove duplicates
+    #remove duplicates --> no duplicates removed
     count = 0
-    with open('connlabel_malicious_new1.csv','r') as in_file:
-        with open('connlabel_malicious_new2.csv','w', newline="") as out_file:
+    with open('conn1.csv','r') as in_file:
+        with open('conn2.csv','w', newline="") as out_file:
             csv_writer = csv.writer(out_file)
             seen = set() # set for fast O(1) amortized lookup
             for line in in_file:
@@ -85,9 +87,6 @@ def removeRows():
                 if check in seen: continue # skip duplicate
                 seen.add(check)
                 csv_writer.writerow(line)
-                if (count % 1000000 == 0):
-                    print(count)
-                count += 1
         print(count)    
     
     
@@ -99,6 +98,9 @@ def createDataSet():
             
             for i in range(10000000):
                 csv_writer.writerow(next(csv_reader))
+                
+def addLabels():
+    
         
 import pandas as pd
 df = pd.read_csv('connlabel_benign_new2.csv')    
@@ -107,9 +109,3 @@ df.head()
 db = pd.read_csv('34\\connlabel_benign34_new2.csv')
             
         
-        
-        
-        
-print(l.shape)
-
-with open("mirai_testing_labels.csv", 'w', newline='') as file:
