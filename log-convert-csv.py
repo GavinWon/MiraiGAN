@@ -12,7 +12,7 @@ import fileinput
 def covertLogToCSV(): #72317 total samples
     with open("conn.csv", 'w', newline='') as file:  
         # with open("connlabel_benign.csv", 'w', newline='') as file2:         
-        with open("conn.log.txt", "r") as readfile:
+        with open("conn.log", "r") as readfile:
             csv_writer_m = csv.writer(file)
             # csv_writer_b = csv.writer(file2)
             
@@ -20,7 +20,7 @@ def covertLogToCSV(): #72317 total samples
                 readfile.readline()
                 
             l = readfile.readline().split()
-            l = l[1:-1] #dont include tunnel parents
+            l = l[1:]
             l.append("Label")
             csv_writer_m.writerow(l)
             
@@ -31,8 +31,8 @@ def covertLogToCSV(): #72317 total samples
             Lines = readfile.readlines()
             count = 0
             for line in Lines:
-                l = line.split()[:-1]
-                l.append("Benign")
+                l = line.split()[:]
+                l.append("Mirai")
                 if "-" in l:
                     count += 1
                 # if (len(l) < 21):
