@@ -51,15 +51,16 @@ with open("conn_combined.csv", 'w', newline='') as file:
     writer.writerows(list)
 
 def removeCol():
-    with open("connlabel_malicious.csv","r") as source:
+    with open("conn.csv","r") as source:
         rdr = csv.reader( source )
-        with open("connlabel_malicious_new.csv","w", newline="") as result:
+        with open("conn1.csv","w", newline="") as result:
             count = 0
             wtr = csv.writer( result )
             for r in rdr:
                 if (count % 1000000 == 0):
                     print(count)
-                wtr.writerow([r[0], r[1], r[2], r[3], r[4], r[5], r[6], r[11], r[14], r[15], r[16], r[17], r[18],  r[19], r[21], r[22] ] )  
+                wtr.writerow([r[0], r[1], r[2], r[3], r[4], r[5], r[6], r[8], r[9],
+                              r[16], r[17], r[21]] )  
                 count += 1
                 
 
@@ -67,31 +68,36 @@ def removeCol():
 
 def removeRows():
     #remove rows with - in the row -->66893 left (5425 removed)
-    with open('conn.csv', 'r') as read_obj:
-        with open('conn1.csv', 'w', newline='') as write_obj:
+    #remove rows with - in the row -->24047
+    with open('conn1.csv', 'r') as read_obj:
+        with open('conn2.csv', 'w', newline='') as write_obj:
             csv_reader = csv.reader(read_obj)
             csv_writer = csv.writer(write_obj)
             count = 0
-            seen = set()
             for row in csv_reader:
-                check = row[:-1] #dont consider the last column
-                if ("-" not in check):
-                    csv_writer.writerow(row)
-                    count += 1
+                row = [0 if x=="-" else x for x in row]
+                csv_writer.writerow(row)
+                count += 1
             print(count)
             
     #remove duplicates --> no duplicates removed
     count = 0
-    with open('conn1.csv','r') as in_file:
-        with open('conn2.csv','w', newline="") as out_file:
-            csv_writer = csv.writer(out_file)
+    with open('conn2.csv','r') as in_file:
+        with open('conn3.csv','w', newline="",) as out_file:
+            csv_writer = csv.writer(out_file, delimiter=',', lineterminator='\n')
             seen = set() # set for fast O(1) amortized lookup
             for line in in_file:
-                line = tuple(line.split(",")) 
-                check = line[2:]
+                line = tuple(line.split(","))
+                check = line[2:-1]
                 if check in seen: continue # skip duplicate
                 seen.add(check)
-                csv_writer.writerow(line)
+                row = list(line)
+                if count == 0:
+                    row[-1] == "Label"
+                else:
+                    row[-1] = "Mirai"
+                csv_writer.writerow(row)
+                count += 1
         print(count)    
     
     
