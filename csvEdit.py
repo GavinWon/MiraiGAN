@@ -51,16 +51,16 @@ with open("conn_combined.csv", 'w', newline='') as file:
     writer.writerows(list)
 
 def removeCol():
-    with open("conn.csv","r") as source:
+    with open("conn1.csv","r") as source:
         rdr = csv.reader( source )
-        with open("conn1.csv","w", newline="") as result:
+        with open("conn_reduced.csv","w", newline="") as result:
             count = 0
             wtr = csv.writer( result )
             for r in rdr:
                 if (count % 1000000 == 0):
                     print(count)
                 wtr.writerow([r[0], r[1], r[2], r[3], r[4], r[5], r[6], r[8], r[9],
-                              r[16], r[17], r[21]] )  
+                              r[16], r[17], r[20]] )  
                 count += 1
                 
 
@@ -93,7 +93,7 @@ def removeRows():
                 seen.add(check)
                 row = list(line)
                 if count == 0:
-                    row[-1] == "Label"
+                    row[-1] = "Label"
                 else:
                     row[-1] = "Mirai"
                 csv_writer.writerow(row)
@@ -110,7 +110,19 @@ def createDataSet():
             for i in range(10000000):
                 csv_writer.writerow(next(csv_reader))
                 
-def addLabels():
+def combine():
+    with open('combined.csv', 'w', newline='') as write_obj:
+       csv_writer = csv.writer(write_obj)
+       with open('benign.csv', 'r') as read_obj:
+           csv_reader = csv.reader(read_obj)
+           for row in csv_reader:
+               csv_writer.writerow(row)
+       with open('mirai.csv', 'r') as read_obj:
+           next(read_obj) #skip the label
+           csv_reader = csv.reader(read_obj)
+           for row in csv_reader:
+               csv_writer.writerow(row)      
+        
     
         
 import pandas as pd
