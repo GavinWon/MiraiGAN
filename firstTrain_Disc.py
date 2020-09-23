@@ -22,26 +22,8 @@ sys.path.append("D:\\Repos\\MiraiGAN")
 from GAN_Model import *
 
 
-dataset_training = pd.read_csv('Dataset\\Training\\Mirai_dataset.csv')
-print(dataset_training.head())
-labels_training = pd.read_csv('Dataset\\Training\\mirai_labels.csv')
-
-dataset_testing = pd.read_csv('Dataset\\Testing\\mirai_testing_dataset.csv')
-labels_testing = pd.read_csv('Dataset\\Testing\\mirai_testing_labels.csv')
 
 
-
-#Getting X and Y Data
-X_train = dataset_training.iloc[:, 1:]
-Y_train = labels_training.iloc[:, :]
-
-X_test = dataset_testing.iloc[:, :-1]
-Y_test = labels_testing.iloc[:, :]
-
-from sklearn.preprocessing import StandardScaler
-scaler = StandardScaler()
-X_train = scaler.fit_transform(X_train)
-X_test = scaler.transform(X_test)
 
 test = np.array(X_train)
 
@@ -53,14 +35,15 @@ print(np.amax(test))
 
 print(X.shape)
 
-X_train = tf.reshape(X_train, (764137, 115, 1))
-X_test = tf.reshape(X_test, (534388, 115, 1))
+X_train = tf.reshape(X_train, (79794, 1224, 1))
+X_test = tf.reshape(X_test, (26598, 1224, 1))
 
 disc = build_discriminator()
+
 disc.compile(loss = 'binary_crossentropy', optimizer = Adam(learning_rate=0.001), metrics=['accuracy']) #default Adam optimizer
 
 #Training the Discriminator on datset
-history = disc.fit(X_train, Y_train, epochs = 20, batch_size = 100, validation_data = (X_test, Y_test), shuffle = True)
+history = disc.fit(X_train, Y_train, epochs = 10, batch_size = 100, validation_data = (X_test, Y_test), shuffle = True)
 
 #Saving disc model
 file_name = "pretrain_disc"
