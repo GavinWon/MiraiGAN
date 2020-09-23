@@ -19,6 +19,7 @@ import sys
 
 
 dataset = pd.read_csv('New\\combined.csv')
+dataset.dropna()
 dataset.nunique()
 dataset.dtypes
 # ts                68262
@@ -38,40 +39,58 @@ print(dataset.head())
 
 x = dataset.iloc[:, [2,3,5]].values #[id.orig_h, id.orig_p, id.resp_p]
 x1 = dataset.iloc[:, [4]] #[id.resp_h]
-x2 = dataset.iloc[:, 6:-1].values
+x2 = dataset.iloc[:, 6:-1].values  #[proto, duration, orig_bytes, orig_pkts, orig_ip_bytes] 
 Y = dataset.iloc[:, -1].values
 
-np.any(np.isnan(x2))
-np.all(np.isfinite(x2))
 
 # (unique, counts) = np.unique(x, return_counts=True)
 # frequencies = np.asarray((unique, counts)).T
 
 from sklearn.compose import ColumnTransformer
 from sklearn.preprocessing import OneHotEncoder, LabelEncoder
+from sklearn.preprocessing import StandardScaler, Normalizer
 le = LabelEncoder()
 x[:, 0] = le.fit_transform(x[:,0])
 x = x.astype(np.float64)
 ct  = ColumnTransformer([('encoder', OneHotEncoder(), [0])], remainder='passthrough')
 x = ct.fit_transform(x).toarray()
+sc = StandardScaler()
+# x[:, -2:] = sc.fit_transform(x[:, -2:])
+x = sc.fit_transform(x)
+
 
 threshold = 5
 counts = x1["id.resp_h"].value_counts()
 repl = counts[counts <= threshold].index
 x1 = pd.get_dummies(x1["id.resp_h"].replace(repl, 'uncommon')).values
 
-le = LabelEncoder()
-x2[:, 0] = le.fit_transform(x2[:,0].astype(str))
+le2 = LabelEncoder()
+x2[:, 0] = le2.fit_transform(x2[:,0].astype(str))
 x2 = x2.astype(np.float64)
 ct2  = ColumnTransformer([('encoder', OneHotEncoder(), [0])], remainder='passthrough')
 x2 = ct2.fit_transform(x2)
+sc2 = StandardScaler()
+# x2[:, 4:] = sc2.fit_transform(x2[:, 4:])
+x2 = sc2.fit_transform(x2)
 
 X = np.concatenate((x, x1, x2), axis = 1)
 
+leY = LabelEncoder()
+Y = le.fit_transform(Y)
+Y = np.array([float(element) for element in Y])
+
+X = X[~np.isnan(X).any(axis=1)]
+Y = Y[:-1]
 
 
 from sklearn.model_selection import train_test_split
 X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size = 0.25, random_state = 42)
+
+np.argwhere(np.isnan(x))
+np.any(np.isnan(Y))
+np.all(np.isfinite(X))
+X = X[~np.isnan(X).any(axis=1)]
+Y = Y[:-1]
 
 
 
