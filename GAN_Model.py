@@ -50,23 +50,20 @@ def build_generator(seed_size):
     model = Sequential()
 
 
-    model.add(Conv1DTranspose(input_tensor = (160, seed_size, 1), filters = 512, kernel_size=3,padding="valid")) #padding=same
-    model.add(BatchNormalization()) #momentum=0.8
-    model.add(LeakyReLU())
 
-    model.add(Conv1DTranspose(input_tensor = (160, seed_size, 1), filters = 256,kernel_size=3,padding="valid")) #padding=same
+    model.add(Conv1DTranspose(input_tensor = (160, seed_size, 1), filters = 256,kernel_size=3,padding="same")) #padding=same
     model.add(BatchNormalization()) #momentum=0.8
-    model.add(LeakyReLU())
+    model.add(LeakyReLU(alpha=0.2))
     
-    model.add(Conv1DTranspose(input_tensor = (160, seed_size, 1), filters = 128, kernel_size=3, strides=2, padding="valid")) #padding=same
+    model.add(Conv1DTranspose(input_tensor = (160, seed_size, 1), filters = 128, kernel_size=3, strides=2, padding="same")) #padding=same
     model.add(BatchNormalization())
-    model.add(LeakyReLU())
+    model.add(LeakyReLU(alpha=0.2))
     
-    model.add(Conv1DTranspose(input_tensor = (160, seed_size, 1), filters = 64, kernel_size=3, strides=2, padding="valid")) #padding=same
+    model.add(Conv1DTranspose(input_tensor = (160, seed_size, 1), filters = 64, kernel_size=3, strides=2, padding="same")) #padding=same
     model.add(BatchNormalization())
-    model.add(LeakyReLU())
+    model.add(LeakyReLUalpha=0.2())
     
-    model.add(Dense(115)) #activation linear or relu?
+    model.add(Dense(1224)) #activation linear or relu?
     
     return model
    
@@ -104,7 +101,6 @@ def build_discriminator():
     model.add(Conv1D(256, kernel_size=3, strides=1, padding="same")) #padding=same
     model.add(BatchNormalization())
     model.add(Activation('tanh'))
-    
 
     model.add(GlobalAveragePooling1D())
     model.add(Dropout(0.25))
