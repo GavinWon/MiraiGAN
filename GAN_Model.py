@@ -86,29 +86,25 @@ def generator_loss(fake_output):
 def build_discriminator():
     model = Sequential()
 
-    model.add(Conv1D(32, kernel_size=3, strides=2, input_shape= (115, 1), padding="valid")) #padding=same
+    model.add(Conv1D(32, kernel_size=3, strides=2, input_shape= (1224, 1), padding="same")) #padding=same
     model.add(LeakyReLU(alpha=0.2))
 
     model.add(Dropout(0.25))
-    model.add(Conv1D(64, kernel_size=3, strides=2, padding="valid")) #padding=same
+    model.add(Conv1D(64, kernel_size=3, strides=2, padding="same")) #padding=same
     # model.add(ZeroPadding2D(padding=((0,1),(0,1))))
     model.add(BatchNormalization())
     model.add(LeakyReLU(alpha=0.2))
 
     model.add(Dropout(0.25))
-    model.add(Conv1D(128, kernel_size=3, strides=2, padding="valid")) #padding=same
+    model.add(Conv1D(128, kernel_size=3, strides=2, padding="same")) #padding=same
     model.add(BatchNormalization())
     model.add(LeakyReLU(alpha=0.2))
 
     model.add(Dropout(0.25))
-    model.add(Conv1D(256, kernel_size=3, strides=1, padding="valid")) #padding=same
+    model.add(Conv1D(256, kernel_size=3, strides=1, padding="same")) #padding=same
     model.add(BatchNormalization())
-    model.add(LeakyReLU(alpha=0.2))
-
-    model.add(Dropout(0.25))
-    model.add(Conv1D(512, kernel_size=3, strides=1, padding="valid")) #padding=same
-    model.add(BatchNormalization())
-    model.add(LeakyReLU(alpha=0.2))
+    model.add(Activation('tanh'))
+    
 
     model.add(GlobalAveragePooling1D())
     model.add(Dropout(0.25))
@@ -118,8 +114,6 @@ def build_discriminator():
     return model
 
         
-
-
 def discriminator_loss(real_output, fake_output):
     real_loss = cross_entropy(tf.ones_like(real_output), real_output)
     fake_loss = cross_entropy(tf.zeros_like(fake_output), fake_output)
