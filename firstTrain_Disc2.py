@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
 """
-Created on Tue Aug 18 00:20:32 2020
+Created on Thu Sep 24 19:25:39 2020
 
 @author: Gavin
 """
+
 
 
 import tensorflow as tf
@@ -19,7 +20,7 @@ import pandas as pd
 import sys
 
 sys.path.append("D:\\Repos\\MiraiGAN")
-from GAN_Model import *
+from GAN_Model2 import *
 
 
 
@@ -38,12 +39,11 @@ print(X.shape)
 X_train = tf.reshape(X_train, (79794, 1224, 1))
 X_test = tf.reshape(X_test, (26598, 1224, 1))
 
-disc1 = build_discriminator()
+disc = build_discriminator()
 
-disc1.compile(loss = 'binary_crossentropy', optimizer = Adam(learning_rate=0.001), metrics=['accuracy']) #default Adam optimizer
 
 #Training the Discriminator on datset
-history = disc1.fit(X_train, Y_train, epochs = 10, batch_size = 100, validation_data = (X_test, Y_test), shuffle = True)
+history = disc.fit(X_train, Y_train, epochs = 10, batch_size = 100, validation_data = (X_test, Y_test), shuffle = True)
 
 #Saving disc model
 file_name = "pretrain_disc"
