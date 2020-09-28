@@ -1,5 +1,11 @@
 # -*- coding: utf-8 -*-
 """
+Created on Thu Sep 24 21:01:02 2020
+
+@author: Gavin
+"""
+# -*- coding: utf-8 -*-
+"""
 Created on Sun Aug 16 18:26:10 2020
 
 @author: Gavin
@@ -17,6 +23,14 @@ import numpy as np
 import os 
 import time
 import matplotlib.pyplot as plt
+
+
+from numpy import expand_dims
+from numpy import zeros
+from numpy import ones
+from numpy import asarray
+from numpy.random import randn
+from numpy.random import randint
 tf.test.gpu_device_name()
 
 # This method returns a helper function to compute cross entropy loss
@@ -50,7 +64,6 @@ def build_generator(seed_size):
     model = Sequential()
 
 
-
     model.add(Conv1DTranspose(input_tensor = (160, seed_size, 1), filters = 256,kernel_size=3,padding="same")) #padding=same
     model.add(BatchNormalization()) #momentum=0.8
     model.add(LeakyReLU(alpha=0.2))
@@ -77,8 +90,6 @@ def build_generator(seed_size):
 
     
 
-def generator_loss(fake_output):
-    return cross_entropy(tf.ones_like(fake_output), fake_output)
 
 def build_discriminator():
     model = Sequential()
@@ -105,7 +116,9 @@ def build_discriminator():
     model.add(GlobalAveragePooling1D())
     model.add(Dropout(0.25))
     model.add(Flatten())
-    model.add(Dense(1, activation='sigmoid'))
+    model.add(Dense(1, activation='softmax'))
+    
+    model.compile(loss = 'sparse_categorical_crossentropy', optimizer = Adam(learning_rate=0.001), metrics=['accuracy']) #default Adam optimizer
 
     return model
 
@@ -113,21 +126,92 @@ def build_discriminator():
 def define_gan(g_model, d_model):
 	# make weights in the discriminator not trainable
 	d_model.trainable = False
+    
 	# connect image output from generator as input to discriminator
 	gan_output = d_model(g_model.output)
+    
 	# define gan model as taking noise and outputting a classification
 	model = Model(g_model.input, gan_output)
 	# compile model
+    
 	opt = Adam(lr=0.0002, beta_1=0.5)
 	model.compile(loss='binary_crossentropy', optimizer=opt)
 	return model
 
-        
+# select a supervised subset of the dataset, ensures classes are balanced
+#NEEDS FIXING
+def generate_real_samples(dataset, n_samples=100, n_classes=10):
+	X, y = dataset
+	X_list, y_list = list(), list()
+	n_per_class = int(n_samples / n_classes)
+	for i in range(n_classes):
+		# get all images for this class
+		X_with_class = X[y == i]
+		# choose random instances
+		ix = randint(0, len(X_with_class), n_per_class)
+		# add to list
+		[X_list.append(X_with_class[j]) for j in ix]
+		[y_list.append(i) for j in ix]
+	return X_list, y_list      
+
+# generate points in latent space as input for the generator
+def generate_latent_points(latent_dim, n_samples):
+	# generate points in the latent space
+	z_input = randn(latent_dim * n_samples)
+	# reshape into a batch of inputs for the network
+	z_input = z_input.reshape(n_samples, latent_dim)
+	return z_input
+
+# use the generator to generate n fake examples, with class labels
+def generate_fake_samples(generator, latent_dim, n_samples):
+	# generate points in latent space
+	z_input = generate_latent_points(latent_dim, n_samples)
+	# predict outputs
+	x = generator.predict(z_input)
+	# create class labels
+	y = zeros((n_samples, 1))
+	return x, y
+
 def discriminator_loss(real_output, fake_output):
     real_loss = cross_entropy(tf.ones_like(real_output), real_output)
     fake_loss = cross_entropy(tf.zeros_like(fake_output), fake_output)
     total_loss = real_loss + fake_loss
     return total_loss
+
+'''                          METRICS                                 '''
+
+from matplotlib import pyplot
+# generate samples and save as a plot and save the model
+# NEED TO EDIT
+def summarize_performance(step, g_model, c_model, latent_dim, dataset, n_samples=100):
+	# prepare fake examples
+	X, _ = generate_fake_samples(g_model, latent_dim, n_samples)
+	# scale from [-1,1] to [0,1]
+	X = (X + 1) / 2.0
+	# plot images
+	for i in range(100):
+		# define subplot
+		pyplot.subplot(10, 10, 1 + i)
+		# turn off axis
+		pyplot.axis('off')
+		# plot raw pixel data
+		pyplot.imshow(X[i, :, :, 0], cmap='gray_r')
+	# save plot to file
+	filename1 = 'generated_plot_%04d.png' % (step+1)
+	pyplot.savefig(filename1)
+	pyplot.close()
+	# evaluate the classifier model
+	X, y = dataset
+	_, acc = c_model.evaluate(X, y, verbose=0)
+	print('Classifier Accuracy: %.3f%%' % (acc * 100))
+	# save the generator model
+	filename2 = 'g_model_%04d.h5' % (step+1)
+	g_model.save(filename2)
+	# save the classifier model
+	filename3 = 'c_model_%04d.h5' % (step+1)
+	c_model.save(filename3)
+	print('>Saved: %s, %s, and %s' % (filename1, filename2, filename3))
+
 
 
 #plot the accuracy and the validation accuracy
@@ -153,6 +237,3 @@ def plot_loss(h):
     plt.legend(['loss', 'val loss' ], loc='upper left')
     plt.show()
 
-def printabc():
-    global x
-    print(x + 1)
