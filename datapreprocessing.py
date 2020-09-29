@@ -55,8 +55,8 @@ x = x.astype(np.float64)
 ct  = ColumnTransformer([('encoder', OneHotEncoder(), [0])], remainder='passthrough')
 x = ct.fit_transform(x).toarray()
 sc = StandardScaler()
-# x[:, -2:] = sc.fit_transform(x[:, -2:])
-x = sc.fit_transform(x)
+x[:, -2:] = sc.fit_transform(x[:, -2:])
+# x = sc.fit_transform(x)
 
 
 threshold = 5
@@ -74,13 +74,13 @@ sc2 = StandardScaler()
 x2 = sc2.fit_transform(x2)
 
 X = np.concatenate((x, x1, x2), axis = 1)
+X = X[~np.isnan(X).any(axis=1)]
 
 leY = LabelEncoder()
 Y = le.fit_transform(Y)
-Y = np.array([float(element) for element in Y])
-
-X = X[~np.isnan(X).any(axis=1)]
 Y = Y[:-1]
+Y = [i + 1 for i in Y]
+Y = np.array([float(element) for element in Y])
 
 
 from sklearn.model_selection import train_test_split
@@ -89,7 +89,6 @@ X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size = 0.25, rand
 np.argwhere(np.isnan(x))
 np.any(np.isnan(Y))
 np.all(np.isfinite(X))
-X = X[~np.isnan(X).any(axis=1)]
-Y = Y[:-1]
+
 
 
