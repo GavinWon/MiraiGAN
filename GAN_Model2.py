@@ -47,6 +47,8 @@ import tensorflow.keras.backend as K
 from tensorflow.keras.layers import Conv2DTranspose, Lambda
 
 
+'''                         GAN STRURCTURE                                 '''
+
 def Conv1DTranspose(input_tensor, filters, kernel_size, strides=2, padding='same'):
     """
         input_tensor: tensor, with the shape (batch_size, time_steps, dims)
@@ -59,6 +61,11 @@ def Conv1DTranspose(input_tensor, filters, kernel_size, strides=2, padding='same
     x = Conv2DTranspose(filters=filters, kernel_size=(kernel_size, 1), strides=(strides, 1), padding=padding)(x)
     x = Lambda(lambda x: K.squeeze(x, axis=2))(x)
     return x
+
+def custom_activation(output):
+	logexpsum = np.sum(np.exp(output))
+	result = logexpsum / (logexpsum + 1.0)
+	return result
 
 def build_generator(seed_size):
     model = Sequential()
@@ -88,9 +95,6 @@ def build_generator(seed_size):
     # Final CNN layer
     # model.add(Activation("tanh"))
 
-    
-
-
 def build_discriminator():
     model = Sequential()
 
@@ -118,9 +122,15 @@ def build_discriminator():
     model.add(Flatten())
     model.add(Dense(1, activation='softmax'))
     
-    model.compile(loss = 'sparse_categorical_crossentropy', optimizer = Adam(learning_rate=0.001), metrics=['accuracy']) #default Adam optimizer
+    #determine if real/generated
+    d_model = Dense(1, activation='sigmoid')(model) #d_out_layer = Lambda(custom_activation)(fe)
+    d_model.compile(loss='binary_crossentropy', optimizer=Adam(lr=0.0002, beta_1=0.5))
+    
+    #determine if benign/malware after determining real
+    c_model = Dense(1, activation='sigmoid')(model)
+    c_model.compile(loss = 'binary_crossentropy', optimizer = Adam(learning_rate=0.001), metrics=['accuracy']) #default Adam optimizer
 
-    return model
+    return d_model, c_model
 
 # define the combined generator and discriminator model, for updating the generator
 def define_gan(g_model, d_model):
@@ -138,21 +148,18 @@ def define_gan(g_model, d_model):
 	model.compile(loss='binary_crossentropy', optimizer=opt)
 	return model
 
+'''           GETTING AND GENERATING REAL/FAKE SAMPLES                    '''
 # select a supervised subset of the dataset, ensures classes are balanced
-#NEEDS FIXING
-def generate_real_samples(dataset, n_samples=100, n_classes=10):
+def get_real_samples(dataset, n_samples=100, n_classes=2):
+	# split into images and labels
 	X, y = dataset
-	X_list, y_list = list(), list()
-	n_per_class = int(n_samples / n_classes)
-	for i in range(n_classes):
-		# get all images for this class
-		X_with_class = X[y == i]
-		# choose random instances
-		ix = randint(0, len(X_with_class), n_per_class)
-		# add to list
-		[X_list.append(X_with_class[j]) for j in ix]
-		[y_list.append(i) for j in ix]
-	return X_list, y_list      
+	# choose random instances
+	ix = randint(0, X.shape[0], n_samples)
+	# select images and labels
+	X_sample, y_sample = X[ix], y[ix]
+	# generate class labels
+	y_other = ones((n_samples, 1))
+	return [X, y], y_other  
 
 # generate points in latent space as input for the generator
 def generate_latent_points(latent_dim, n_samples):
@@ -172,6 +179,7 @@ def generate_fake_samples(generator, latent_dim, n_samples):
 	y = zeros((n_samples, 1))
 	return x, y
 
+'''                          LOSS FUNCTION                                '''
 def discriminator_loss(real_output, fake_output):
     real_loss = cross_entropy(tf.ones_like(real_output), real_output)
     fake_loss = cross_entropy(tf.zeros_like(fake_output), fake_output)
@@ -213,7 +221,7 @@ def summarize_performance(step, g_model, c_model, latent_dim, dataset, n_samples
 	print('>Saved: %s, %s, and %s' % (filename1, filename2, filename3))
 
 
-
+'''                         ACCURACY/LOSS PLOT                                '''
 #plot the accuracy and the validation accuracy
 def plot_acc(h):
     plt.plot(h.history['accuracy'])
