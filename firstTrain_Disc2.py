@@ -41,7 +41,6 @@ X_test = tf.reshape(X_test, (26598, 1224, 1))
 
 disc = build_discriminator()
 
-
 #Training the Discriminator on datset
 history = disc.fit(X_train, Y_train, epochs = 10, batch_size = 100, validation_data = (X_test, Y_test), shuffle = True)
 
