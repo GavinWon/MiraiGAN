@@ -56,12 +56,9 @@ from GAN_Model2 import *
 
 # train the generator and discriminator
 def train(g_model, d_model, c_model, gan_model, dataset, latent_dim, n_epochs=20, n_batch=100):
-	# select supervised dataset
+
 	X, y = dataset
-    
-	print(X_sup.shape, y_sup.shape)
-    
-	# calculate the number of batches per training epoch
+    # calculate the number of batches per training epoch
 	bat_per_epo = int(X.shape[0] / n_batch)
     
 	# calculate the number of training iterations
@@ -72,16 +69,19 @@ def train(g_model, d_model, c_model, gan_model, dataset, latent_dim, n_epochs=20
 	# manually enumerate epochs
 	for i in range(n_steps):
         
-        #update gen first since disc was pretrained
+        # update discriminator (d)
+		[X_real, _], y_real = get_real_samples(dataset, n_samples = n_batch) #Y_real is all 1
+		d_loss1 = d_model.train_on_batch(X_real, y_real)
+		X_fake, y_fake = generate_fake_samples(g_model, latent_dim, n_batch) #Y_fake is all 0
+		d_loss2 = d_model.train_on_batch(X_fake, y_fake)
+        
         # update generator (g)
-		X_gan, y_gan = generate_latent_points(latent_dim, n_batch), ones((n_batch, 1))
+		X_gan, y_gan = generate_latent_points(latent_dim, n_batch), ones((n_batch, 1)) #Y_gan is all 1
 		g_loss = gan_model.train_on_batch(X_gan, y_gan)
         
-		# update discriminator (d)
-		[X_real, _], y_real = generate_real_samples(dataset, half_batch)
-		d_loss1 = d_model.train_on_batch(X_real, y_real)
-		X_fake, y_fake = generate_fake_samples(g_model, latent_dim, half_batch)
-		d_loss2 = d_model.train_on_batch(X_fake, y_fake)
+        #update c_model -- not sure if needed though since pretrain
+# 		[X_real, y_real], _ = generate_real_samples([X_sup, y_sup], half_batch)
+# 		c_loss, c_acc = c_model.train_on_batch(Xsup_real, ysup_real)
         
 		
 		# summarize loss on this batch
@@ -99,7 +99,9 @@ loaded_model_json = json_file.read()
 json_file.close()
 
 d_model = tf.keras.models.model_from_json(loaded_model_json)
-d_models.load_weights("pretrain_disc.h5")
+d_model.load_weights("pretrain_disc.h5")
+
+_, c_model = define_discriminator()
 
 preds_test = model.predict_classes(X_test)
 
@@ -109,6 +111,6 @@ g_model = define_generator(latent_dim)
 # create the gan
 gan_model = define_gan(g_model, d_model)
 # load image data
-dataset = load_real_samples()
+dataset = [X, y]
 # train model
 train(g_model, d_model, c_model, gan_model, dataset, latent_dim)
