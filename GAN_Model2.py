@@ -83,7 +83,7 @@ def build_generator(seed_size):
     model.add(BatchNormalization())
     model.add(LeakyReLUalpha=0.2())
     
-    model.add(Dense(1224)) #activation linear or relu?
+    model.add(Dense(9)) #activation linear or relu?
     
     return model
    
@@ -162,14 +162,11 @@ def build_discriminator():
 def define_gan(g_model, d_model):
 	# make weights in the discriminator not trainable
 	d_model.trainable = False
-    
-	# connect image output from generator as input to discriminator
-	gan_output = d_model(g_model.output)
-    
-	# define gan model as taking noise and outputting a classification
-	model = Model(g_model.input, gan_output)
+    #create the gan model
+    model = Sequential()
+    model.add(g_model)
+    model.add(d_model)
 	# compile model
-    
 	opt = Adam(lr=0.0002, beta_1=0.5)
 	model.compile(loss='binary_crossentropy', optimizer=opt)
 	return model
