@@ -1,0 +1,21 @@
+Features:
+1. id.orig_h (IP) [307]
+2. id.orig_p [1]
+3. id.resp_h [907]
+4. id.resp_p [1]
+5. proto [4]
+6. duration [1]
+7. orig_bytes [1]
+8. orig_pkts [1]
+9. orig_ip_bytes [1]
+
+Benign Data
+--Link: https://mcfp.felk.cvut.cz/publicDatasets/CTU-Normal-32/bro/
+-- 66890 data Samples (2-66891) [62.87%]
+
+Malware Data:
+-- Link: https://ieee-dataport.org/open-access/iot-network-intrusion-dataset#files
+	-- Use Zeek to convert Mirai PCAP into Zeek conn logs
+-- 39503 (66892-106394) [37.13%]
+
+Total data samples: 106393
