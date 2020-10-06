@@ -95,11 +95,21 @@ def build_generator(seed_size):
     # Final CNN layer
     # model.add(Activation("tanh"))
 
-def build_discriminator():
+def build_disc_ip():
+    model = Sequential()
+    model.add(Dense(32, activation='relu', input_shape = ()))
+    model.add(Dense(64, activation='relu'))
+    model.add(Dense(128, activation='relu'))
+    model.add(Dense(256, activation='relu'))
+    model.add(Dense(20, activation="softmax")) #output layer
+    
+    return model
+
+def build_main_disc():
     #determine if real/generated
     d_model = Sequential()
 
-    d_model.add(Conv1D(32, kernel_size=3, strides=2, input_shape= (1224, 1), padding="same")) #padding=same
+    d_model.add(Conv1D(32, kernel_size=3, strides=2, input_shape= (30, 1), padding="same")) #padding=same
     d_model.add(LeakyReLU(alpha=0.2))
 
     d_model.add(Dropout(0.25))
@@ -129,7 +139,7 @@ def build_discriminator():
     #determine if benign/malware after determining real
     c_model = Sequential()
 
-    c_model.add(Conv1D(32, kernel_size=3, strides=2, input_shape= (1224, 1), padding="same")) #padding=same
+    c_model.add(Conv1D(32, kernel_size=3, strides=2, input_shape= (30, 1), padding="same")) #padding=same
     c_model.add(LeakyReLU(alpha=0.2))
 
     c_model.add(Dropout(0.25))
