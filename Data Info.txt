@@ -9,6 +9,9 @@ Features:
 8. orig_pkts [1]
 9. orig_ip_bytes [1]
 
+IP: 1214
+Non-IP: 10
+
 Benign Data
 --Link: https://mcfp.felk.cvut.cz/publicDatasets/CTU-Normal-32/bro/
 -- 66890 data Samples (2-66891) [62.87%]
