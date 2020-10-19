@@ -12,43 +12,29 @@ Created on Tue Aug 25 00:37:57 2020
 """
 
 import tensorflow as tf
+from tensorflow.keras.models import Sequential, Model, load_model
 from tensorflow.keras.layers import Input, Reshape, Dropout, Dense 
 from tensorflow.keras.layers import Flatten, BatchNormalization
 from tensorflow.keras.layers import Activation, ZeroPadding2D
 from tensorflow.keras.layers import LeakyReLU
-from tensorflow.keras.layers import UpSampling2D, Conv2D
+from tensorflow.keras.layers import UpSampling2D, Conv2D, Conv1DTranpose
 from tensorflow.keras.models import Sequential, Model, load_model
 from tensorflow.keras.optimizers import Adam
+
 import numpy as np
-import pandas as pd
-import sys
-
-sys.path.append("D:\\Repos\\MiraiGAN")
-from GAN_Model import *
-
-
-# example of semi-supervised gan for mnist
 from numpy import expand_dims
 from numpy import zeros
 from numpy import ones
 from numpy import asarray
 from numpy.random import randn
 from numpy.random import randint
-from keras.datasets.mnist import load_data
-from keras.optimizers import Adam
-from keras.models import Model
-from keras.layers import Input
-from keras.layers import Dense
-from keras.layers import Reshape
-from keras.layers import Flatten
-from keras.layers import Conv2D
-from keras.layers import Conv2DTranspose
-from keras.layers import LeakyReLU
-from keras.layers import Dropout
-from keras.layers import Lambda
-from keras.layers import Activation
+
+
+import pandas as pd
+import sys
+
 from matplotlib import pyplot
-from keras import backend
+from tensorflow.keras import backend
 
 sys.path.append("D:\\Repos\\MiraiGAN")
 from GAN_Model2 import *
@@ -85,32 +71,31 @@ def train(g_model, d_model, c_model, gan_model, dataset, latent_dim, n_epochs=20
         
 		
 		# summarize loss on this batch
-		print('>%d, c[%.3f,%.0f], d[%.3f,%.3f], g[%.3f]' % (i+1, c_loss, c_acc*100, d_loss1, d_loss2, g_loss))
-		# evaluate the model performance every so often
-		if (i+1) % (bat_per_epo * 1) == 0:
-			summarize_performance(i, g_model, c_model, latent_dim, dataset)
+# 		print('>%d, c[%.3f,%.0f], d[%.3f,%.3f], g[%.3f]' % (i+1, c_loss, c_acc*100, d_loss1, d_loss2, g_loss))
+# 		# evaluate the model performance every so often
+# 		if (i+1) % (bat_per_epo * 1) == 0:
+# 			summarize_performance(i, g_model, c_model, latent_dim, dataset)
+    #Save model for the discriminator and generator
 
 # size of the latent space
-latent_dim = 3 #or 4
+latent_dim = 10 #or 4
 
 # load the discriminator model
-json_file = open('pretrain_disc.json', 'r')
+json_file = open('pretrainV1\\pretrain_disc.json', 'r')
 loaded_model_json = json_file.read()
 json_file.close()
 
-d_model = tf.keras.models.model_from_json(loaded_model_json)
-d_model.load_weights("pretrain_disc.h5")
+c_model = tf.keras.models.model_from_json(loaded_model_json)
+c_model.load_weights("pretrainV1\\pretrain_disc.h5")
 
-_, c_model = define_discriminator()
-
-preds_test = model.predict_classes(X_test)
+d_model, _ = build_main_disc()
 
 # create the generator
-g_model = define_generator(latent_dim)
+g_model = build_generator(latent_dim)
 
 # create the gan
 gan_model = define_gan(g_model, d_model)
 # load image data
-dataset = [X, y]
+data = [X_train, y_train]
 # train model
 train(g_model, d_model, c_model, gan_model, dataset, latent_dim)
