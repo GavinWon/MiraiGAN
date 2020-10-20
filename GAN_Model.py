@@ -80,6 +80,12 @@ def build_generator(seed_size):
 def generator_loss(fake_output):
     return cross_entropy(tf.ones_like(fake_output), fake_output)
 
+def build_ip_encoder():
+    model = Sequential()
+    model.add(Dense(256, activation='relu', input_shape = ()))
+    model.add(Dense())
+    
+
 def build_discriminator():
     model = Sequential()
 
@@ -109,7 +115,8 @@ def build_discriminator():
 
     return model
 
-# define the combined generator and discriminator model, for updating the generator
+
+    
 def define_gan(g_model, d_model):
 	# make weights in the discriminator not trainable
 	d_model.trainable = False
