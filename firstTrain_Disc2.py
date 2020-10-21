@@ -39,10 +39,19 @@ print(X.shape)
 X_train = tf.reshape(X_train, (79794, 1224, 1))
 X_test = tf.reshape(X_test, (26598, 1224, 1))
 
-disc = build_discriminator()
+_,disc_main = build_main_disc()
+disc_ip = build_disc_ip()
+disc = define_discriminator(disc_main, disc_ip)
+
 
 #Training the Discriminator on datset
-history = disc.fit(X_train, Y_train, epochs = 10, batch_size = 100, validation_data = (X_test, Y_test), shuffle = True)
+for i in range(10):
+    #Training the IP Discriminator
+    history = disc.fit(X_train, Y_train, epochs = 1, batch_size = 100, validation_data = (X_test, Y_test), shuffle = True)
+    
+    #Training the Main Discriminator
+    X_real = ip_disc.predict_classes(X_train)
+    history2 = disc_main.fit(X_real, Y_train, epochs = 1, batch_size = 100, shuffle = True)
 
 #Saving disc model
 file_name = "pretrain_disc"
