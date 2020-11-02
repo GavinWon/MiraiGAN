@@ -1,5 +1,11 @@
 # -*- coding: utf-8 -*-
 """
+Created on Sat Oct 24 16:57:24 2020
+
+@author: Gavin
+"""
+# -*- coding: utf-8 -*-
+"""
 Created on Thu Sep 17 21:20:11 2020
 
 @author: Gavin
@@ -53,17 +59,25 @@ from sklearn.preprocessing import StandardScaler, Normalizer
 le = LabelEncoder()
 x[:, 0] = le.fit_transform(x[:,0])
 x = x.astype(np.float64)
-ct  = ColumnTransformer([('encoder', OneHotEncoder(), [0])], remainder='passthrough')
-x = ct.fit_transform(x).toarray()
+sc = StandardScaler()
+x = sc.fit_transform(x)
+
+# One hot Encoding
+# ct  = ColumnTransformer([('encoder', OneHotEncoder(), [0])], remainder='passthrough')
+# x = ct.fit_transform(x).toarray()
+
+#Feature Scaling
 # sc = StandardScaler()
 # x = sc.fit_transform(x)
 # x = sc.fit_transform(x)
-
 
 threshold = 5
 counts = x1["id.resp_h"].value_counts()
 repl = counts[counts <= threshold].index
 x1 = pd.get_dummies(x1["id.resp_h"].replace(repl, 'uncommon')).values
+x1 = (np.argmax(x1, axis=1)).reshape(-1, 1)
+sc1 = StandardScaler()
+x1 = sc1.fit_transform(x1)
 
 sc2 = StandardScaler()
 x2 = sc2.fit_transform(x2)
@@ -78,14 +92,8 @@ sc3 = StandardScaler()
 x3 = sc3.fit_transform(x3)
 
 X = np.concatenate((x, x1, x2, x3), axis = 1)
-
-X_IP = np.concatenate((x, x1), axis = 1)
-X_IP = X_IP[~np.isnan(X).any(axis=1)]
-
 X = X[~np.isnan(X).any(axis=1)]
 
-X_other = np.concatenate((x2, x3), axis = 1)
-X_other = X_other[~np.isnan(X_other).any(axis=1)]
 
 
 leY = LabelEncoder()
@@ -97,8 +105,6 @@ Y = np.array([float(element) for element in Y])
 
 from sklearn.model_selection import train_test_split
 X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size = 0.25, random_state = 42)
-X_IP_train, X_IP_test = train_test_split(X_IP, test_size = 0.25, random_state = 42)
-X_other_train, X_other_test = train_test_split(X_other, test_size = 0.25, random_state = 42)
 
 np.argwhere(np.isnan(x))
 np.any(np.isnan(Y))
