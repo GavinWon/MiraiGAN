@@ -89,7 +89,7 @@ def build_ip_encoder():
 def build_discriminator():
     model = Sequential()
 
-    model.add(Conv1D(32, kernel_size=3, strides=2, input_shape= (1224, 1), padding="same")) #padding=same
+    model.add(Conv1D(32, kernel_size=3, strides=2, input_shape = (9,1), padding="same")) #padding=same
     model.add(LeakyReLU(alpha=0.2))
 
     model.add(Dropout(0.25))
@@ -106,7 +106,8 @@ def build_discriminator():
     model.add(Dropout(0.25))
     model.add(Conv1D(256, kernel_size=3, strides=1, padding="same")) #padding=same
     model.add(BatchNormalization())
-    model.add(Activation('tanh'))
+    model.add(LeakyReLU(alpha=0.2))
+    # model.add(Activation('tanh'))
 
     model.add(GlobalAveragePooling1D())
     model.add(Dropout(0.25))
@@ -115,19 +116,60 @@ def build_discriminator():
 
     return model
 
-
+def build_disc_2(input_shape = (12, 1)):
     
+    in_value = Input(shape=input_shape)
+    
+    # model = Model(inputs=[in_value], outputs=[output])
+    # model.compile(loss='linear', optimizer=Adam(lr=0.0001, beta_1=0.5))
+    
+    #Main Discriminator
+    d = Conv1D(32, kernel_size=3, strides=2, padding="same")([in_value])
+    d = LeakyReLU(alpha=0.2)(d)
+    
+    d = Dropout(0.25)(d)
+    d = Conv1D(64, kernel_size=3, strides=2, padding="same")(d)
+    d = BatchNormalization()(d)
+    d = LeakyReLU(alpha=0.2)(d)
+    
+    d = Dropout(0.25)(d)
+    d = Conv1D(128, kernel_size=3, strides=2, padding="same")(d)
+    d = BatchNormalization()(d)
+    d = LeakyReLU(alpha=0.2)(d)
+    
+    d = Dropout(0.25)(d)
+    d = Conv1D(256, kernel_size=3, strides=2, padding="same")(d)
+    d = BatchNormalization()(d)
+    d = Activation('tanh')(d)
+    
+    d = GlobalAveragePooling1D()(d)
+    d = Dropout(0.25)(d)
+    d = Flatten()(d)
+    
+    #determine if real/generated
+    # d_out_layer = Dense(1, activation='sigmoid')(d)
+    # d_model = Model(inputs=[in_value, d_out_layer])
+    # d_model.compile(loss='binary_crossentropy', optimizer=Adam(lr=0.0002, beta_1=0.5))
+    
+    #determine if benign/malware after determining real
+    c_out_layer = Dense(1, activation='sigmoid')(d)
+    c_model = Model(inputs=[in_value, c_out_layer])
+    c_model.compile(loss = 'binary_crossentropy', optimizer = Adam(learning_rate=0.001), metrics=['accuracy']) 
+    
+    return c_model
+
 def define_gan(g_model, d_model):
-	# make weights in the discriminator not trainable
-	d_model.trainable = False
+    # make weights in the discriminator not trainable
+    d_model.trainable = False
     #create the gan model
     model = Sequential()
     model.add(g_model)
     model.add(d_model)
-	# compile model
-	opt = Adam(lr=0.0002, beta_1=0.5)
-	model.compile(loss='binary_crossentropy', optimizer=opt)
-	return model
+    # compile model
+    opt = Adam(lr=0.0002, beta_1=0.5)
+    model.compile(loss='binary_crossentropy', optimizer=opt)
+    
+    return model
     
         
 def discriminator_loss(real_output, fake_output):

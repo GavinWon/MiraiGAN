@@ -15,7 +15,7 @@ import tensorflow as tf
 from tensorflow.keras.layers import Input, Reshape, Dropout, Dense 
 from tensorflow.keras.layers import Flatten, BatchNormalization
 from tensorflow.keras.layers import Activation, ZeroPadding2D
-from tensorflow.keras.layers import LeakyReLU
+from tensorflow.keras.layers import LeakyReLU, Concatenate
 from tensorflow.keras.layers import Conv1D, Conv2DTranspose, GlobalAveragePooling1D
 from tensorflow.keras.models import Sequential, Model, load_model
 from tensorflow.keras.optimizers import Adam
@@ -96,136 +96,85 @@ def build_generator(seed_size):
     # Final CNN layer
     # model.add(Activation("tanh"))
 
-def build_disc_ip(input_shape=(1100, 1)): #change input_shape later
+def build_disc_ip(input_shape=(1214,)): #change input_shape later
     
     in_value = Input(shape=input_shape)
-    hidden1 = Dense(32, activation='relu')(in_value)
-    hidden2 = Dense(64, activation='relu')(hidden1)
-    hidden3 = Dense(128, activation='relu')(hidden2)
-    output = Dense(20, activation='softmax')(hidden3)
+    hidden1 = Dense(units=80, activation='relu')(in_value)
+    hidden2 = Dense(units=40, activation='relu')(hidden1)
+    hidden3 = Dense(units=30, activation='relu')(hidden2)
+    output = Dense(units=20, activation='softmax')(hidden3)
     
     model = Model(inputs=[in_value], outputs=[output])
-    model.compile(loss='linear', optimizer=Adam(lr=0.0001, beta_1=0.5))
+    # model.compile(loss='linear', optimizer=Adam(lr=0.0001, beta_1=0.5))
     
-    # model = Sequential()
-    # model.add(Dense(32, activation='relu', input_shape = (1224,1)))
-    # model.add(Dense(64, activation='relu'))
-    # model.add(Dense(128, activation='relu'))
-    # model.add(Dense(256, activation='relu'))
-    # model.add(Dense(20, activation="softmax")) #output layer
+
     
     
     return model
 
-def build_main_disc(in_shape=(30,1)):
+def build_main_disc(input_shape=(30,)): #in_shape=(30,1)
     
+
      #Functional API
-    in_value = Input(shape=in_shape)
+    in_value = Input(shape=input_shape)
     
-    fe = Conv1D(32, kernel_size=3, strides=2, padding="same")(in_value)
+    fe = Dense(32)(in_value) #fe = Conv1D(32, kernel_size=3, strides=2, padding="same")(in_value)
     fe = LeakyReLU(alpha=0.2)(fe)
     
     fe = Dropout(0.25)(fe)
-    fe = Conv1D(64, kernel_size=3, strides=2, padding="same")(fe)
+    fe = Dense(64)(fe) #fe = Conv1D(64, kernel_size=3, strides=2, padding="same")(fe)
     fe = BatchNormalization()(fe)
     fe = LeakyReLU(alpha=0.2)(fe)
     
     fe = Dropout(0.25)(fe)
-    fe = Conv1D(128, kernel_size=3, strides=2, padding="same")(fe)
+    fe = Dense(128)(fe) #fe = Conv1D(128, kernel_size=3, strides=2, padding="same")(fe)
     fe = BatchNormalization()(fe)
     fe = LeakyReLU(alpha=0.2)(fe)
     
-    fe = Dropout(0.25)(fe)
-    fe = Conv1D(256, kernel_size=3, strides=2, padding="same")(fe)
-    fe = BatchNormalization()(fe)
-    fe = Activation('tanh')(fe)
+    # fe = Dropout(0.25)(fe)
+    # fe = Dense(256)(fe) # fe = Conv1D(256, kernel_size=3, strides=2, padding="same")(fe)
+    # fe = BatchNormalization()(fe)
+    # fe = LeakyReLU(alpha=0.2)(fe)
     
-    fe = GlobalAveragePooling1D()(fe)
-    fe = Dropout(0.25)(fe)
-    fe = Flatten()(fe)
+    # fe = GlobalAveragePooling1D()(fe)
+    # fe = Dropout(0.25)(fe)
+    # fe = Flatten()(fe)
     
     #determine if real/generated
     d_out_layer = Dense(1, activation='sigmoid')(fe)
-    d_model = Model(inputs=[in_value, d_out_layer])
+    d_model = Model(in_value, d_out_layer)
     d_model.compile(loss='binary_crossentropy', optimizer=Adam(lr=0.0002, beta_1=0.5))
     
     #determine if benign/malware after determining real
     c_out_layer = Dense(1, activation='sigmoid')(fe)
-    c_model = Model(inputs=[in_value, d_out_layer])
+    c_model = Model(in_value, c_out_layer)
     c_model.compile(loss = 'binary_crossentropy', optimizer = Adam(learning_rate=0.001), metrics=['accuracy']) 
     
     return d_model, c_model
-    # #determine if real/generated
-    # d_model = Sequential()
-
-    # d_model.add(Conv1D(32, kernel_size=3, strides=2, input_shape= (30, 1), padding="same")) #padding=same
-    # d_model.add(LeakyReLU(alpha=0.2))
-
-    # d_model.add(Dropout(0.25))
-    # d_model.add(Conv1D(64, kernel_size=3, strides=2, padding="same")) #padding=same
-    # # model.add(ZeroPadding2D(padding=((0,1),(0,1))))
-    # d_model.add(BatchNormalization())
-    # d_model.add(LeakyReLU(alpha=0.2))
-
-    # d_model.add(Dropout(0.25))
-    # d_model.add(Conv1D(128, kernel_size=3, strides=2, padding="same")) #padding=same
-    # d_model.add(BatchNormalization())
-    # d_model.add(LeakyReLU(alpha=0.2))
-
-    # d_model.add(Dropout(0.25))
-    # d_model.add(Conv1D(256, kernel_size=3, strides=1, padding="same")) #padding=same
-    # d_model.add(BatchNormalization())
-    # d_model.add(Activation('tanh'))
-
-    # d_model.add(GlobalAveragePooling1D())
-    # d_model.add(Dropout(0.25))
-    # d_model.add(Flatten())
-    
-    
-    # d_model.add(Dense(1, activation='sigmoid')) #d_out_layer = Lambda(custom_activation)(fe)
-    # d_model.compile(loss='binary_crossentropy', optimizer=Adam(lr=0.0002, beta_1=0.5))
-    
-    # #determine if benign/malware after determining real
-
-    # c_model = Sequential()
-
-    # c_model.add(Conv1D(32, kernel_size=3, strides=2, input_shape= (30, 1), padding="same")) #padding=same
-    # c_model.add(LeakyReLU(alpha=0.2))
-
-    # c_model.add(Dropout(0.25))
-    # c_model.add(Conv1D(64, kernel_size=3, strides=2, padding="same")) #padding=same
-    # # model.add(ZeroPadding2D(padding=((0,1),(0,1))))
-    # c_model.add(BatchNormalization())
-    # c_model.add(LeakyReLU(alpha=0.2))
-
-    # c_model.add(Dropout(0.25))
-    # c_model.add(Conv1D(128, kernel_size=3, strides=2, padding="same")) #padding=same
-    # c_model.add(BatchNormalization())
-    # c_model.add(LeakyReLU(alpha=0.2))
-
-    # c_model.add(Dropout(0.25))
-    # c_model.add(Conv1D(256, kernel_size=3, strides=1, padding="same")) #padding=same
-    # c_model.add(BatchNormalization())
-    # c_model.add(Activation('tanh'))
-
-    # c_model.add(GlobalAveragePooling1D())
-    # c_model.add(Dropout(0.25))
-    # c_model.add(Flatten())
-    
-    
-    # c_model.add(Dense(1, activation='sigmoid'))
-    # c_model.compile(loss = 'binary_crossentropy', optimizer = Adam(learning_rate=0.001), metrics=['accuracy']) #default Adam optimizer
+   
     
 
 
-def define_discriminator(disc_ip, main_disc):
-    main_disc.trainable = False
-    model = Sequential()
-    model.add(disc_ip)
-    model.add(main_disc)
+def build_discriminator(ip_disc, main_disc, inputShape_ip = (1214,), inputShape_other = (10,)):
+    
+    # main_disc.trainable = False
+    
+    inTensorIP = Input(inputShape_ip)
+    inTensorOther = Input(inputShape_other)
+    
+    model = ip_disc(inTensorIP)
+    
+    model = Concatenate()([model, inTensorOther])
+    model = main_disc(model)
+    # outputFinal = main_disc([outputIP, inTensorOther])
+    
+    Disc_Model = Model(inputs=[inTensorIP, inTensorOther], outputs=[model])
     opt = Adam(lr=0.0002, beta_1=0.5)
-    model.compile(loss='binary_crossentropy', optimizer=opt)
-    return model
+    Disc_Model.compile(loss='binary_crossentropy', optimizer=opt, metrics = ["accuracy"])
+    return Disc_Model
+
+
+    
 
 
 # define the combined generator and discriminator model, for updating the generator
@@ -237,7 +186,7 @@ def define_gan(g_model, d_model):
     model.add(d_model)
     #create the gan model
     opt = Adam(lr=0.0002, beta_1=0.5)
-    model.compile(loss='binary_crossentropy', optimizer=opt)
+    model.compile(loss='binary_crossentropy', optimizer=opt, metrics = ["accuracy"])
     return model
     
 
@@ -339,4 +288,76 @@ def plot_loss(h):
 
     plt.legend(['loss', 'val loss' ], loc='upper left')
     plt.show()
+
+    
+# def desc_ip:
+    # model = Sequential()
+    # model.add(Dense(32, activation='relu', input_shape = (1224,1)))
+    # model.add(Dense(64, activation='relu'))
+    # model.add(Dense(128, activation='relu'))
+    # model.add(Dense(256, activation='relu'))
+    # model.add(Dense(20, activation="softmax")) #output layer
+    
+    
+##def build_disc:
+     # #determine if real/generated
+    # d_model = Sequential()
+
+    # d_model.add(Conv1D(32, kernel_size=3, strides=2, input_shape= (30, 1), padding="same")) #padding=same
+    # d_model.add(LeakyReLU(alpha=0.2))
+
+    # d_model.add(Dropout(0.25))
+    # d_model.add(Conv1D(64, kernel_size=3, strides=2, padding="same")) #padding=same
+    # # model.add(ZeroPadding2D(padding=((0,1),(0,1))))
+    # d_model.add(BatchNormalization())
+    # d_model.add(LeakyReLU(alpha=0.2))
+
+    # d_model.add(Dropout(0.25))
+    # d_model.add(Conv1D(128, kernel_size=3, strides=2, padding="same")) #padding=same
+    # d_model.add(BatchNormalization())
+    # d_model.add(LeakyReLU(alpha=0.2))
+
+    # d_model.add(Dropout(0.25))
+    # d_model.add(Conv1D(256, kernel_size=3, strides=1, padding="same")) #padding=same
+    # d_model.add(BatchNormalization())
+    # d_model.add(Activation('tanh'))
+
+    # d_model.add(GlobalAveragePooling1D())
+    # d_model.add(Dropout(0.25))
+    # d_model.add(Flatten())
+    
+    
+    # d_model.add(Dense(1, activation='sigmoid')) #d_out_layer = Lambda(custom_activation)(fe)
+    # d_model.compile(loss='binary_crossentropy', optimizer=Adam(lr=0.0002, beta_1=0.5))
+    
+    # #determine if benign/malware after determining real
+
+    # c_model = Sequential()
+
+    # c_model.add(Conv1D(32, kernel_size=3, strides=2, input_shape= (30, 1), padding="same")) #padding=same
+    # c_model.add(LeakyReLU(alpha=0.2))
+
+    # c_model.add(Dropout(0.25))
+    # c_model.add(Conv1D(64, kernel_size=3, strides=2, padding="same")) #padding=same
+    # # model.add(ZeroPadding2D(padding=((0,1),(0,1))))
+    # c_model.add(BatchNormalization())
+    # c_model.add(LeakyReLU(alpha=0.2))
+
+    # c_model.add(Dropout(0.25))
+    # c_model.add(Conv1D(128, kernel_size=3, strides=2, padding="same")) #padding=same
+    # c_model.add(BatchNormalization())
+    # c_model.add(LeakyReLU(alpha=0.2))
+
+    # c_model.add(Dropout(0.25))
+    # c_model.add(Conv1D(256, kernel_size=3, strides=1, padding="same")) #padding=same
+    # c_model.add(BatchNormalization())
+    # c_model.add(Activation('tanh'))
+
+    # c_model.add(GlobalAveragePooling1D())
+    # c_model.add(Dropout(0.25))
+    # c_model.add(Flatten())
+    
+    
+    # c_model.add(Dense(1, activation='sigmoid'))
+    # c_model.compile(loss = 'binary_crossentropy', optimizer = Adam(learning_rate=0.001), metrics=['accuracy']) #default Adam optimizer
 
