@@ -36,12 +36,30 @@ print(np.amax(test))
 
 print(X.shape)
 
-X_train = tf.reshape(X_train, (79794, 1224, 1))
-X_test = tf.reshape(X_test, (26598, 1224, 1))
+X_train = tf.reshape(X_train, (79794, 1214, 1))
+X_test = tf.reshape(X_test, (26598, 1214, 1))
+
+
+X_IP_train = tf.reshape(X_IP_train, (79794, 1214, 1))
+X_IP_test = tf.reshape(X_IP_test, (26598, 1214, 1))
+X_other_train = tf.reshape(X_other_train, (79794, 10, 1))
+X_other_test = tf.reshape(X_other_test, (26598, 10, 1))
+
+
 
 _,disc_main = build_main_disc()
 disc_ip = build_disc_ip()
-disc = define_discriminator(disc_main, disc_ip)
+disc = build_discriminator(disc_ip, disc_main)
+
+
+
+history = disc.fit([X_IP_train, X_other_train], Y_train, epochs = 10, batch_size = 100, validation_data = ([X_IP_test, X_other_test], Y_test), shuffle = True)
+
+
+
+
+
+
 
 
 #Training the Discriminator on datset
@@ -67,10 +85,11 @@ with open(json, "w") as json_file:
 #Metrics
 
 from sklearn.metrics import accuracy_score
-preds_training = disc.predict_classes(X_train)
-preds_test = disc.predict_classes(X_test)
-print("Accuracy = {}".format(accuracy_score(Y_test, preds_test)))
+preds_training = np.round(disc.predict([X_IP_train, X_other_train]))
+preds_test = np.round(disc.predict([X_IP_test, X_other_test]))
 print("Accuracy = {}".format(accuracy_score(Y_train, preds_training)))
+print("Accuracy = {}".format(accuracy_score(Y_test, preds_test)))
+
 
 from sklearn.metrics import confusion_matrix
 print(confusion_matrix(Y_test, preds_test))

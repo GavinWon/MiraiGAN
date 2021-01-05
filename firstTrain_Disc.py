@@ -35,8 +35,8 @@ print(np.amax(test))
 
 print(X.shape)
 
-X_train = tf.reshape(X_train, (79794, 1224, 1))
-X_test = tf.reshape(X_test, (26598, 1224, 1))
+X_train = tf.reshape(X_train, (79794, 9, 1))
+X_test = tf.reshape(X_test, (26598, 9, 1))
 
 disc1 = build_discriminator()
 
