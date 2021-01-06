@@ -53,8 +53,14 @@ disc = build_discriminator(disc_ip, disc_main)
 
 
 
-history = disc.fit([X_IP_train, X_other_train], Y_train, epochs = 10, batch_size = 100, validation_data = ([X_IP_test, X_other_test], Y_test), shuffle = True)
+history = disc.fit([X_IP_train, X_other_train], Y_train, epochs = 5, batch_size = 100, validation_data = ([X_IP_test, X_other_test], Y_test), shuffle = True)
 
+test = X_IP_train[0]
+test = tf.reshape(test, (1, 1214, 1))
+wubdub = disc_ip.predict([test])
+wubdub2 = disc_ip.predict([test])
+wubdub3 = disc_ip.predict([test])
+final = disc_ip.predict(X_IP_train)
 
 
 
