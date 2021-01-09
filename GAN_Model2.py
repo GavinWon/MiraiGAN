@@ -69,22 +69,22 @@ def custom_activation(output):
 
 def build_generator(seed_size):
     
-    in_value = Input(shape=(seed_size, 1))
-    model = Sequential()
+    in_value = Input(shape=seed_size)
     
-    model.add(Conv1DTranspose(input_tensor = (100, seed_size, 1), filters = 256,kernel_size=3,padding="same")) #padding=same
-    model.add(BatchNormalization()) #momentum=0.8
-    model.add(LeakyReLU(alpha=0.2))
+    hidden1 = Dense(units=20)(in_value)
+    batch1 = BatchNormalization()(hidden1) #momentum=0.8
+    relu1 = LeakyReLU(alpha=0.2)(batch1)
     
-    model.add(Conv1DTranspose(input_tensor = (100, seed_size, 1), filters = 128, kernel_size=3, strides=2, padding="same")) #padding=same
-    model.add(BatchNormalization())
-    model.add(LeakyReLU(alpha=0.2))
+    hidden2 = Dense(units=40)(relu1)
+    batch2 = BatchNormalization()(hidden2) #momentum=0.8
+    relu2 = LeakyReLU(alpha=0.2)(batch2)
     
-    model.add(Conv1DTranspose(input_tensor = (100, seed_size, 1), filters = 64, kernel_size=3, strides=2, padding="same")) #padding=same
-    model.add(BatchNormalization())
-    model.add(LeakyReLUalpha=0.2())
+    hidden3 = Dense(units=80)(relu2)
+    batch3 = BatchNormalization()(hidden3) #momentum=0.8
+    relu3 = LeakyReLU(alpha=0.2)(batch3)
     
-    model.add(Dense(30)) #activation linear or relu?
+    out_value = Dense(30)(relu3) #activation linear or relu?
+    model = Model(in_value, out_value)
     
     return model
    
@@ -154,7 +154,7 @@ def build_main_disc(input_shape=(30,)): #in_shape=(30,1)
    
     
 
-
+# building the disciminator combining main and ip discriminator
 def build_discriminator(ip_disc, main_disc, inputShape_ip = (1214,), inputShape_other = (10,)):
     
     # main_disc.trainable = False
@@ -174,36 +174,37 @@ def build_discriminator(ip_disc, main_disc, inputShape_ip = (1214,), inputShape_
     return Disc_Model
 
 
+
     
 
 
 # define the combined generator and discriminator model, for updating the generator
 def define_gan(g_model, d_model):
-    # make weights in the discriminator not trainable
-    d_model.trainable = False
-    model = Sequential()
-    model.add(g_model)
-    model.add(d_model)
-    #create the gan model
-    opt = Adam(lr=0.0002, beta_1=0.5)
-    model.compile(loss='binary_crossentropy', optimizer=opt, metrics = ["accuracy"])
-    return model
-    
+	# make weights in the discriminator not trainable
+	d_model.trainable = False
+	# connect image output from generator as input to discriminator
+	gan_output = d_model(g_model.output)
+	# define gan model as taking noise and outputting a classification
+	model = Model(g_model.input, gan_output)
+	# compile model
+	opt = Adam(lr=0.0002, beta_1=0.5)
+	model.compile(loss='binary_crossentropy', optimizer=opt)
+	return model
 
 '''           GETTING AND GENERATING REAL/FAKE SAMPLES                    '''
 
     
-# select a supervised subset of the dataset, ensures classes are balanced
-def get_real_samples(dataset, n_samples=100, n_classes=2):
-	# split into images and labels
+# select a supervised subset of the dataset
+def get_real_samples(dataset, n_samples=100):
+	# split into X and Y
 	X, y = dataset
 	# choose random instances
 	ix = randint(0, X.shape[0], n_samples)
 	# select images and labels
 	X_sample, y_sample = X[ix], y[ix]
 	# generate class labels
-	y_other = ones((n_samples, 1))
-	return [X, y], y_other  
+	y_other = ones((n_samples, 1)) #1 = REAL DATA
+	return X_sample, y_other  
 
 # generate points in latent space as input for the generator
 def generate_latent_points(latent_dim, n_samples):
