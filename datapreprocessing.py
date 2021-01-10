@@ -4,6 +4,7 @@ Created on Thu Sep 17 21:20:11 2020
 
 @author: Gavin
 """
+#For One-Hot Encoding
 
 import tensorflow as tf
 from tensorflow.keras.layers import Input, Reshape, Dropout, Dense 
@@ -91,8 +92,9 @@ X_other = X_other[~np.isnan(X_other).any(axis=1)]
 leY = LabelEncoder()
 Y = le.fit_transform(Y)
 Y = Y[:-1]
-Y = [i + 1 for i in Y]
-Y = np.array([float(element) for element in Y])
+# Y = [i for i in Y]
+Y = np.array([float(element) for element in Y]) 
+
 
 
 from sklearn.model_selection import train_test_split

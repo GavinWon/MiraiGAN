@@ -5,11 +5,8 @@ Created on Sat Oct 24 16:57:24 2020
 @author: Gavin
 """
 # -*- coding: utf-8 -*-
-"""
-Created on Thu Sep 17 21:20:11 2020
+# For Label Encoding
 
-@author: Gavin
-"""
 
 import tensorflow as tf
 from tensorflow.keras.layers import Input, Reshape, Dropout, Dense 
@@ -59,23 +56,22 @@ from sklearn.preprocessing import StandardScaler, Normalizer
 le = LabelEncoder()
 x[:, 0] = le.fit_transform(x[:,0])
 x = x.astype(np.float64)
-sc = StandardScaler()
-x = sc.fit_transform(x)
 
 # One hot Encoding
 # ct  = ColumnTransformer([('encoder', OneHotEncoder(), [0])], remainder='passthrough')
 # x = ct.fit_transform(x).toarray()
 
 #Feature Scaling
-# sc = StandardScaler()
-# x = sc.fit_transform(x)
-# x = sc.fit_transform(x)
+sc = StandardScaler()
+x = sc.fit_transform(x)
+x = sc.fit_transform(x)
 
 threshold = 5
 counts = x1["id.resp_h"].value_counts()
 repl = counts[counts <= threshold].index
 x1 = pd.get_dummies(x1["id.resp_h"].replace(repl, 'uncommon')).values
 x1 = (np.argmax(x1, axis=1)).reshape(-1, 1)
+x1 = x1.astype(np.float64)
 sc1 = StandardScaler()
 x1 = sc1.fit_transform(x1)
 
@@ -85,10 +81,7 @@ x2 = sc2.fit_transform(x2)
 le3 = LabelEncoder()
 x3[:, 0] = le3.fit_transform(x3[:,0].astype(str))
 x3 = x3.astype(np.float64)
-ct3  = ColumnTransformer([('encoder', OneHotEncoder(), [0])], remainder='passthrough')
-x3 = ct3.fit_transform(x3)
 sc3 = StandardScaler()
-# x2[:, 4:] = sc2.fit_transform(x2[:, 4:])
 x3 = sc3.fit_transform(x3)
 
 X = np.concatenate((x, x1, x2, x3), axis = 1)
