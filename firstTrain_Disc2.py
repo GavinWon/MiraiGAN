@@ -32,9 +32,9 @@ test = np.array(X_train)
 print(np.mean(test))
 print(np.amin(test))
 print(np.amax(test))
-
-
 print(X.shape)
+
+other = X_other_train
 
 X_train = tf.reshape(X_train, (79794, 1214, 1))
 X_test = tf.reshape(X_test, (26598, 1214, 1))
@@ -52,30 +52,29 @@ disc_ip = build_disc_ip()
 disc = build_discriminator(disc_ip, disc_main)
 
 
-
 history = disc.fit([X_IP_train, X_other_train], Y_train, epochs = 5, batch_size = 100, validation_data = ([X_IP_test, X_other_test], Y_test), shuffle = True)
 
+
+
+
+
+
+# Preparing new Data
 test = X_IP_train[0]
 test = tf.reshape(test, (1, 1214, 1))
 wubdub = disc_ip.predict([test])
 wubdub2 = disc_ip.predict([test])
 wubdub3 = disc_ip.predict([test])
-final = disc_ip.predict(X_IP_train)
+IP = disc_ip.predict(X_IP_train)
+
+final = np.hstack((IP, other)) #1-20 --> IP, #21 - 30 --> other
+
+np.save('data.npy', final)
 
 
 
 
 
-
-
-#Training the Discriminator on datset
-for i in range(10):
-    #Training the IP Discriminator
-    history = disc.fit(X_train, Y_train, epochs = 1, batch_size = 100, validation_data = (X_test, Y_test), shuffle = True)
-    
-    #Training the Main Discriminator
-    X_real = ip_disc.predict_classes(X_train)
-    history2 = disc_main.fit(X_real, Y_train, epochs = 1, batch_size = 100, shuffle = True)
 
 #Saving disc model
 file_name = "pretrain_disc"
