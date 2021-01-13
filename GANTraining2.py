@@ -17,7 +17,7 @@ from tensorflow.keras.layers import Input, Reshape, Dropout, Dense
 from tensorflow.keras.layers import Flatten, BatchNormalization
 from tensorflow.keras.layers import Activation, ZeroPadding2D
 from tensorflow.keras.layers import LeakyReLU
-from tensorflow.keras.layers import UpSampling2D, Conv2D, Conv1DTranpose
+from tensorflow.keras.layers import UpSampling2D, Conv2D
 from tensorflow.keras.models import Sequential, Model, load_model
 from tensorflow.keras.optimizers import Adam
 
@@ -41,9 +41,8 @@ from GAN_Model2 import *
 
 
 # train the generator and discriminator
-def train(g_model, d_model, c_model, gan_model, dataset, latent_dim, n_epochs=20, n_batch=100):
+def train(g_model, d_model, gan_model, dataset, latent_dim, n_epochs=10, n_batch=100):
 
-	X, y = dataset
     # calculate the number of batches per training epoch
 	bat_per_epo = int(X.shape[0] / n_batch)
     
@@ -51,12 +50,12 @@ def train(g_model, d_model, c_model, gan_model, dataset, latent_dim, n_epochs=20
 	n_steps = bat_per_epo * n_epochs
 	# calculate the size of half a batch of samples
 	half_batch = int(n_batch / 2)
-	print('n_epochs=%d, n_batch=%d, 1/2=%d, b/e=%d, steps=%d' % (n_epochs, n_batch, half_batch, bat_per_epo, n_steps))
+	#print('n_epochs=%d, n_batch=%d, 1/2=%d, b/e=%d, steps=%d' % (n_epochs, n_batch, half_batch, bat_per_epo, n_steps))
 	# manually enumerate epochs
 	for i in range(n_steps):
         
         # update discriminator (d)
-		[X_real, _], y_real = get_real_samples(dataset, n_samples = n_batch) #Y_real is all 1
+		X_real, y_real = get_real_samples(dataset, n_samples = n_batch) #Y_real is all 1
 		d_loss1 = d_model.train_on_batch(X_real, y_real)
 		X_fake, y_fake = generate_fake_samples(g_model, latent_dim, n_batch) #Y_fake is all 0
 		d_loss2 = d_model.train_on_batch(X_fake, y_fake)
@@ -65,9 +64,6 @@ def train(g_model, d_model, c_model, gan_model, dataset, latent_dim, n_epochs=20
 		X_gan, y_gan = generate_latent_points(latent_dim, n_batch), ones((n_batch, 1)) #Y_gan is all 1
 		g_loss = gan_model.train_on_batch(X_gan, y_gan)
         
-        #update c_model -- not sure if needed though since pretrain
-# 		[X_real, y_real], _ = generate_real_samples([X_sup, y_sup], half_batch)
-# 		c_loss, c_acc = c_model.train_on_batch(Xsup_real, ysup_real)
         
 		
 		# summarize loss on this batch
@@ -96,6 +92,23 @@ g_model = build_generator(latent_dim)
 # create the gan
 gan_model = define_gan(g_model, d_model)
 # load image data
-data = [X_train, y_train]
+X_train = np.load('data.npy')
+data = [X_train, Y_train]
 # train model
-train(g_model, d_model, c_model, gan_model, dataset, latent_dim)
+train(g_model, d_model, gan_model, data, latent_dim)
+
+
+##TESTING
+X_real, y_real = get_real_samples(data, 100)
+X_real = tf.reshape(X_real, (100, 30, 1))
+
+d_loss1 = d_model.train_on_batch(X_real, y_real)
+
+X_train = tf.reshape(X_IP_train, (79794, 1214, 1))
+history = d_model.fit(X_train, Y_train, epochs = 5, batch_size = 100, shuffle = True)
+
+
+
+X_fake, y_fake = generate_fake_samples(g_model, latent_dim, 100) #Y_fake is all 0
+
+
