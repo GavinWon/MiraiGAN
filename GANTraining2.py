@@ -99,16 +99,20 @@ train(g_model, d_model, gan_model, data, latent_dim)
 
 
 ##TESTING
+''' 1 '''
 X_real, y_real = get_real_samples(data, 100)
 X_real = tf.reshape(X_real, (100, 30, 1))
-
 d_loss1 = d_model.train_on_batch(X_real, y_real)
 
-X_train = tf.reshape(X_IP_train, (79794, 1214, 1))
-history = d_model.fit(X_train, Y_train, epochs = 5, batch_size = 100, shuffle = True)
-
-
-
+''' 2 '''
 X_fake, y_fake = generate_fake_samples(g_model, latent_dim, 100) #Y_fake is all 0
+d_loss2 = d_model.train_on_batch(X_fake, y_fake)
+
+''' 3 '''
+X_gan, y_gan = generate_latent_points(latent_dim, 100), ones((100, 1)) #Y_gan is all 1
+g_loss = gan_model.train_on_batch(X_gan, y_gan)
+
+#EXTRA
+d_loss2 = d_model.train_on_batch(X_fake, y_fake)
 
 
