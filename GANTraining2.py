@@ -30,6 +30,7 @@ from numpy.random import randn
 from numpy.random import randint
 
 
+
 import pandas as pd
 import sys
 
@@ -39,39 +40,94 @@ from tensorflow.keras import backend
 sys.path.append("D:\\Repos\\MiraiGAN")
 from GAN_Model2 import *
 
+def summarize_performance(step, g_model, d_model, latent_dim, dataset, n_samples=200):
+    X_real = dataset[0]
+    Y_real = dataset[1]
+    
+    preds_fake_old = np.round(d_model.predict(X_fake))
+    preds_real_old = np.round(d_model.predict(X_real))
+    
+    X_fake_new, Y_fake_new = generate_fake_samples(g_model, latent_dim)
+    # X_real_new, Y_real_new = get_real_samples(data)
+    
+    preds_fake_new = np.round(d_model.predict(X_fake_new))
+    # preds_real_new = np.round(d_model.predict(X_real_new))
+    
+    preds_real_train = np.round(d_model.predict(X_train))
+                      
+    from sklearn.metrics import accuracy_score
+    print("Step", step, ": Gen Old Accuracy = {}".format(accuracy_score(Y_fake, preds_fake_old)))
+    fake_old_accuracy.append(accuracy_score(Y_fake, preds_fake_old))
+    
+    print("Step", step, ": Real Old Accuracy = {}".format(accuracy_score(Y_real, preds_real_old)))
+    real_new_accuracy.append(accuracy_score(Y_real, preds_real_old))
+    
+    print("Step", step, ": Gen New Accuracy = {}".format(accuracy_score(Y_fake_new, preds_fake_new)))
+    fake_new_accuracy.append(accuracy_score(Y_fake_new, preds_fake_new))
+    
+    print("Step", step, ": Real Train Accuracy = {}".format(accuracy_score(Y_train, preds_real_train)))
+    print()
+    
+
+
 
 # train the generator and discriminator
-def train(g_model, d_model, gan_model, dataset, latent_dim, n_epochs=10, n_batch=100):
+def train(g_model, d_model, gan_model, data_train, data_test, latent_dim, n_epochs=10, n_batch=200):
 
     # calculate the number of batches per training epoch
-	bat_per_epo = int(X.shape[0] / n_batch)
+    X_train, Y_train = data_train
+    bat_per_epo = int(X_train.shape[0] / n_batch)
     
-	# calculate the number of training iterations
-	n_steps = bat_per_epo * n_epochs
-	# calculate the size of half a batch of samples
-	half_batch = int(n_batch / 2)
-	#print('n_epochs=%d, n_batch=%d, 1/2=%d, b/e=%d, steps=%d' % (n_epochs, n_batch, half_batch, bat_per_epo, n_steps))
-	# manually enumerate epochs
-	for i in range(n_steps):
+    # calculate the number of training iterations
+    n_steps = bat_per_epo * n_epochs
+    # calculate the size of half a batch of samples
+    half_batch = int(n_batch / 2)
+    #print('n_epochs=%d, n_batch=%d, 1/2=%d, b/e=%d, steps=%d' % (n_epochs, n_batch, half_batch, bat_per_epo, n_steps))
+    # manually enumerate epochs
+    for i in range(n_steps): #n_steps = 1480
         
-        # update discriminator (d)
-		X_real, y_real = get_real_samples(dataset, n_samples = n_batch) #Y_real is all 1
-		d_loss1 = d_model.train_on_batch(X_real, y_real)
-		X_fake, y_fake = generate_fake_samples(g_model, latent_dim, n_batch) #Y_fake is all 0
-		d_loss2 = d_model.train_on_batch(X_fake, y_fake)
+        # update discriminator (d) 
+        
+        X_real, y_real = get_real_samples(data_train, n_samples = n_batch) #Y_real is all 1
+        y_real = zeros(n_batch)
+        # X_real = tf.reshape(X_real, (n_batch, 30, 1))
+        d_loss2 = d_model.train_on_batch(X_real, y_real)
+        d_loss2_values.append(d_loss2)
+        
+        
+        X_fake, y_fake = generate_fake_samples(g_model, latent_dim, n_samples = n_batch) #Y_fake is all 0
+        y_fake = ones(n_batch)
+        # X_fake = tf.reshape(X_fake, (n_batch, 30, 1))
+        d_loss1 = d_model.train_on_batch(X_fake, y_fake)
+        d_loss1_values.append(d_loss1)
+        
         
         # update generator (g)
-		X_gan, y_gan = generate_latent_points(latent_dim, n_batch), ones((n_batch, 1)) #Y_gan is all 1
-		g_loss = gan_model.train_on_batch(X_gan, y_gan)
+        X_gan, y_gan = generate_latent_points(latent_dim, half_batch), zeros((half_batch)) #Y_gan is all 1
+        # X_gan = tf.reshape(X_gan, (n_batch, 30, 1))
+        g_loss = gan_model.train_on_batch(X_gan, y_gan)
+        g_loss_values.append(g_loss)
         
         
-		
-		# summarize loss on this batch
-# 		print('>%d, c[%.3f,%.0f], d[%.3f,%.3f], g[%.3f]' % (i+1, c_loss, c_acc*100, d_loss1, d_loss2, g_loss))
-# 		# evaluate the model performance every so often
-# 		if (i+1) % (bat_per_epo * 1) == 0:
-# 			summarize_performance(i, g_model, c_model, latent_dim, dataset)
+        # evaluate the model performance every so often
+        # if ((i) % (10) == 0):
+        summarize_performance(i, g_model, d_model, latent_dim, data_test) 
+        
+
+        # print("Finished Step:", i, "out of", n_steps)
+        
+        
+        # # summarize loss on this batch
+        # print('>%d, d[%.3f,%.3f], g[%.3f]' % (i+1, d_loss1, d_loss2, g_loss))
+        
+
     #Save model for the discriminator and generator
+
+
+
+
+# Acc/Loss Track
+
 
 # size of the latent space
 latent_dim = 10 #or 4
@@ -91,11 +147,25 @@ g_model = build_generator(latent_dim)
 
 # create the gan
 gan_model = define_gan(g_model, d_model)
-# load image data
-X_train = np.load('data.npy')
-data = [X_train, Y_train]
+
+# load data 1
+X_train = np.load('data_train.npy')
+data_train = [X_train, Y_train]
+Y = np.full(len(X_train), 1)
+X_test = np.load('data_test.npy')
+Y2 = np.full(len(X_test), 1)
+data_test = [X_test, Y_test]
+
+# load data 2
+X_train = np.load('Saved Data\\data_mirai_train.npy')
+Y_train = np.full(len(X_train), 1)
+data_train = [X_train, Y_train]
+X_test = np.load('Saved Data\\data_mirai_test.npy')
+Y_test = np.full(len(X_test), 1)
+data_test = [X_test, Y_test]
+
 # train model
-train(g_model, d_model, gan_model, data, latent_dim)
+train(g_model, d_model, gan_model, data_train, data_test, latent_dim)
 
 
 ##TESTING
@@ -105,14 +175,38 @@ X_real = tf.reshape(X_real, (100, 30, 1))
 d_loss1 = d_model.train_on_batch(X_real, y_real)
 
 ''' 2 '''
-X_fake, y_fake = generate_fake_samples(g_model, latent_dim, 100) #Y_fake is all 0
+X_fake, y_fake = generate_fake_samples(g_model, latent_dim, 200) #Y_fake is all 0
 d_loss2 = d_model.train_on_batch(X_fake, y_fake)
 
 ''' 3 '''
-X_gan, y_gan = generate_latent_points(latent_dim, 100), ones((100, 1)) #Y_gan is all 1
+X_gan, y_gan = generate_latent_points(latent_dim, 200), ones((200, 1)) #Y_gan is all 1
 g_loss = gan_model.train_on_batch(X_gan, y_gan)
 
 #EXTRA
-d_loss2 = d_model.train_on_batch(X_fake, y_fake)
+
+
+
+    
+    
+#Prepare testing set
+    
+X_fake, Y_fake = generate_fake_samples(g_model, latent_dim, 200)
+X_real, Y_real = get_real_samples(data)
+preds_fake = np.round(d_model.predict(X_fake))
+preds_real = np.round(d_model.predict(X_real))
+
+np.save('X_fake.npy', X_fake)
+
+test = d_model.predict(X_fake)
+test2 = d_model.predict(X_real)
+                      
+from sklearn.metrics import accuracy_score
+print("Gen Accuracy = {}".format(accuracy_score(Y_fake, preds_fake)))
+print("Real Accuracy = {}".format(accuracy_score(Y_real, preds_real)))
+
+
+X_real, Y_real = get_real_samples(data)
+_, acc = d_model.evaluate(X_fake, Y_fake, verbose=0)
+_, acc = c_model.evaluate(X_fake, Y_fake, verbose=0)
 
 
