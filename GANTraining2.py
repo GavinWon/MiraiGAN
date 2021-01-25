@@ -184,6 +184,30 @@ g_loss = gan_model.train_on_batch(X_gan, y_gan)
 
 #EXTRA
 
+#Saving Models
+file_name = "d_model" 
+json = file_name + ".json"
+h5 = file_name + ".h5"
+model_json = d_model.to_json()
+with open(json, "w") as json_file:
+    json_file.write(model_json)
+    d_model.save_weights(h5)
+    
+file_name = "g_model" 
+json = file_name + ".json"
+h5 = file_name + ".h5"
+model_json = g_model.to_json()
+with open(json, "w") as json_file:
+    json_file.write(model_json)
+    g_model.save_weights(h5)
+    
+file_name = "gan_model" 
+json = file_name + ".json"
+h5 = file_name + ".h5"
+model_json = gan_model.to_json()
+with open(json, "w") as json_file:
+    json_file.write(model_json)
+    gan_model.save_weights(h5)
 
 #Opening Models
 json_file = open('Saved Models\\d_model.json', 'r')
