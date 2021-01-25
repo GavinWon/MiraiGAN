@@ -185,7 +185,24 @@ g_loss = gan_model.train_on_batch(X_gan, y_gan)
 #EXTRA
 
 
+#Opening Models
+json_file = open('Saved Models\\d_model.json', 'r')
+d_model_json = json_file.read()
+json_file.close()
+d_model = tf.keras.models.model_from_json(d_model_json)
+d_model.load_weights("Saved Models\\d_model.h5")
 
+json_file = open('Saved Models\\g_model.json', 'r')
+g_model_json = json_file.read()
+json_file.close()
+g_model = tf.keras.models.model_from_json(g_model_json)
+g_model.load_weights("Saved Models\\g_model.h5")
+
+json_file = open('Saved Models\\gan_model.json', 'r')
+gan_model_json = json_file.read()
+json_file.close()
+gan_model = tf.keras.models.model_from_json(gan_model_json)
+gan_model.load_weights("Saved Models\\gan_model.h5")
     
     
 #Prepare testing set
