@@ -59,7 +59,7 @@ def summarize_performance(step, g_model, d_model, latent_dim, dataset, n_samples
     print("Step", step, ": Gen Old Accuracy = {}".format(accuracy_score(Y_fake, preds_fake_old)))
     fake_old_accuracy.append(accuracy_score(Y_fake, preds_fake_old))
     
-    print("Step", step, ": Real Old Accuracy = {}".format(accuracy_score(Y_real, preds_real_old)))
+    print("Step", step, ": Real Test Accuracy = {}".format(accuracy_score(Y_real, preds_real_old)))
     real_new_accuracy.append(accuracy_score(Y_real, preds_real_old))
     
     print("Step", step, ": Gen New Accuracy = {}".format(accuracy_score(Y_fake_new, preds_fake_new)))
@@ -190,6 +190,8 @@ X_fake_new, Y_fake_new = generate_fake_samples(g_model, latent_dim)
 preds_fake_new = np.round(d_model.predict(X_fake_new))
 
 print("New Accuracy = {}".format(accuracy_score(Y_fake_new, preds_fake_new)))
+
+d_model.fit(X_train, Y_train, validation_data = (X_test, Y_test), epochs = 10, batch_size = 200, shuffle = True)
 
 #Saving Models
 file_name = "d_model" 
