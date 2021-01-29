@@ -182,7 +182,14 @@ d_loss2 = d_model.train_on_batch(X_fake, y_fake)
 X_gan, y_gan = generate_latent_points(latent_dim, 200), ones((200, 1)) #Y_gan is all 1
 g_loss = gan_model.train_on_batch(X_gan, y_gan)
 
+
 #EXTRA
+d_loss2 = d_model.train_on_batch(X_fake, y_fake)
+
+X_fake_new, Y_fake_new = generate_fake_samples(g_model, latent_dim)
+preds_fake_new = np.round(d_model.predict(X_fake_new))
+
+print("New Accuracy = {}".format(accuracy_score(Y_fake_new, preds_fake_new)))
 
 #Saving Models
 file_name = "d_model" 
