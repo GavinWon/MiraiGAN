@@ -40,7 +40,11 @@ def plot_fake_accuracy(array, title):
     
     plt.plot(X, array, 'bo', markersize = 5)
     
-
+    plt.title(title, fontsize=40, pad=30)
+    plt.ylabel('Accuracy', fontsize=30, labelpad=20)
+    plt.yticks(np.arange(0.55, 1.05, 0.05), fontsize=20)
+    plt.xlabel('Steps', fontsize=30, labelpad=20)
+    plt.xticks(np.arange(0, 1600, 100), fontsize=20)
     
 
     plt.tight_layout()
