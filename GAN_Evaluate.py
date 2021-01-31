@@ -51,3 +51,7 @@ def plot_fake_accuracy(array, title):
     # set(gca,'xtick',xmin:.1:xmax)
     plt.savefig('fake.png')
     plt.show()
+
+
+
+plt.plot(np.arange(len(50)) + 1)
