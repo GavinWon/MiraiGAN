@@ -34,3 +34,16 @@ from tensorflow.keras import backend
 sys.path.append("D:\\Repos\\MiraiGAN")
 from GAN_Model2 import *
 
+def plot_fake_accuracy(array, title):
+    X = np.arange(len(array)) + 1
+    plt.figure(figsize=(20, 16))
+    
+    plt.plot(X, array, 'bo', markersize = 5)
+    
+
+    
+
+    plt.tight_layout()
+    # set(gca,'xtick',xmin:.1:xmax)
+    plt.savefig('fake.png')
+    plt.show()
