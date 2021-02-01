@@ -55,3 +55,17 @@ def plot_fake_accuracy(array, title):
 
 
 plt.plot(np.arange(len(50)) + 1)
+
+fake_old = np.load('fake_old_accuracy.npy')[2390:]
+fake_new_title = "Fake Data Accuracy"
+plot_gan_accuracy(fake_old, fake_new_title)
+
+fake_new = np.load('fake_new_accuracy.npy')[2391:]
+fake_new_title = "Fake Data Accuracy"
+plot_fake_accuracy(fake_new, fake_new_title)
+
+real = np.load('real_new_accuracy.npy')[2391:]
+real = real[:600]
+real_title = "Real Data Accuracy"
+
+plot_fake_accuracy(real, real_title)
