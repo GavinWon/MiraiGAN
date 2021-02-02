@@ -127,7 +127,12 @@ def train(g_model, d_model, gan_model, data_train, data_test, latent_dim, n_epoc
 
 
 # Acc/Loss Track
-
+d_loss1_values = []
+d_loss2_values = []
+g_loss_values = []
+fake_old_accuracy = []
+fake_new_accuracy = []
+real_new_accuracy = []
 
 # size of the latent space
 latent_dim = 10 #or 4
