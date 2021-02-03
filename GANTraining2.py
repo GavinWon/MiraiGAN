@@ -134,6 +134,15 @@ fake_old_accuracy = []
 fake_new_accuracy = []
 real_new_accuracy = []
 
+np.save('d_loss1_values.npy', d_loss1_values)
+np.save('d_loss2_values.npy', d_loss2_values)
+np.save('g_loss_values.npy', g_loss_values)
+np.save('fake_old_accuracy.npy', fake_old_accuracy)
+np.save('fake_new_accuracy.npy', fake_new_accuracy)
+np.save('real_new_accuracy.npy', real_new_accuracy)
+
+test = np.load('fake_old_accuracy.npy')
+
 # size of the latent space
 latent_dim = 10 #or 4
 
