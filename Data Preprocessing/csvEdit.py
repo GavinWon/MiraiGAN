@@ -1,7 +1,5 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Tue Sep  1 21:47:51 2020
 
+"""
 @author: Gavin
 """
 
@@ -10,6 +8,7 @@ import pandas
 import fileinput
 
 list = []
+''' Converting connection log files into CSV files'''
 def covertLogToCSV(): #72317 total samples
     with open("conn.csv", 'w', newline='') as file:  
         # with open("connlabel_benign.csv", 'w', newline='') as file2:         
@@ -50,6 +49,7 @@ with open("conn_combined.csv", 'w', newline='') as file:
     writer = csv.writer(file)
     writer.writerows(list)
 
+'''Remove unneceesary columns within the csv file'''
 def removeCol():
     with open("conn1.csv","r") as source:
         rdr = csv.reader( source )
@@ -65,7 +65,7 @@ def removeCol():
                 
 
      
-
+'''Remove certain rows with too many missing values or duplicates'''
 def removeRows():
     #remove rows with - in the row -->66893 left (5425 removed)
     #remove rows with - in the row -->24047
@@ -100,7 +100,7 @@ def removeRows():
                 count += 1
         print(count)    
     
-    
+'''Create new copy of a dataset'''
 def createDataSet():
     with open('connlabel_malicious_new2.csv', 'r') as read_obj:
         with open('malicious.csv', 'w', newline='') as write_obj:
@@ -109,7 +109,8 @@ def createDataSet():
             
             for i in range(10000000):
                 csv_writer.writerow(next(csv_reader))
-                
+
+'''Combine two csv files: benign and mirai into one dataset all together'''
 def combine():
     with open('combined.csv', 'w', newline='') as write_obj:
        csv_writer = csv.writer(write_obj)
@@ -123,8 +124,8 @@ def combine():
            for row in csv_reader:
                csv_writer.writerow(row)      
         
-    
-        
+
+'''Testing Code'''
 import pandas as pd
 df = pd.read_csv('connlabel_benign_new2.csv')    
 df.head()
