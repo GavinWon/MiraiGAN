@@ -1,10 +1,9 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Tue Jan 26 23:30:34 2021
 
+"""
 @author: Gavin
 """
 
+'''import statements'''
 import tensorflow as tf
 from tensorflow.keras.models import Sequential, Model, load_model
 from tensorflow.keras.layers import Input, Reshape, Dropout, Dense 
@@ -13,27 +12,19 @@ from tensorflow.keras.layers import Activation, ZeroPadding2D
 from tensorflow.keras.layers import LeakyReLU
 from tensorflow.keras.layers import UpSampling2D, Conv2D
 from tensorflow.keras.models import Sequential, Model, load_model
+from tensorflow.keras import backend
 from tensorflow.keras.optimizers import Adam
 
 import numpy as np
-from numpy import expand_dims
-from numpy import zeros
-from numpy import ones
-from numpy import asarray
-from numpy.random import randn
-from numpy.random import randint
-
-
-
-import pandas as pd
 import sys
 
 import matplotlib.pyplot as plt
-from tensorflow.keras import backend
 
+'''Import GAN Model'''
 sys.path.append("D:\\Repos\\MiraiGAN")
 from GAN_Model2 import *
 
+'''Plot Accuracy Values for the Generated/Fake data'''
 def plot_fake_accuracy(array, title):
     X = np.arange(len(array)) + 1
     plt.figure(figsize=(20, 16))
@@ -48,10 +39,10 @@ def plot_fake_accuracy(array, title):
     
 
     plt.tight_layout()
-    # set(gca,'xtick',xmin:.1:xmax)
     plt.savefig('fake.png')
     plt.show()
 
+'''Plot Accuracy Values for the Real data'''
 def plot_real_accuracy(array, title):
     X = np.arange(len(array)) + 1
     plt.figure(figsize=(20, 16))
@@ -66,22 +57,22 @@ def plot_real_accuracy(array, title):
     
 
     plt.tight_layout()
-    # set(gca,'xtick',xmin:.1:xmax)
     plt.savefig('real.png')
     plt.show()
 
 
-plt.plot(np.arange(len(50)) + 1)
+'''Retrieve the numpy of accuracy values and plot with title'''
 
-fake_old = np.load('Saved Metric Values\\fake_old_accuracy.npy')[2390:]
-fake_new_title = "Fake Data Accuracy"
-plot_gan_accuracy(fake_old, fake_new_title)
-
-fake_new = np.load('Saved Metric Values\\fake_new_accuracy.npy')[2391:]
+fake_new = np.load('Saved Metric Values\\fake_new_accuracy.npy')[2391:] #Ignore first half since values for old model. 
 fake_new_title = "Generated/Fake Data Accuracy"
 plot_fake_accuracy(fake_new, fake_new_title)
 
-real = np.load('Saved Metric Values\\real_new_accuracy.npy')[2391:]
-real = real[:600]
+real = np.load('Saved Metric Values\\real_new_accuracy.npy')[2391:] #Ignore first half since values for old model. 
+real = real[:600] #Optional: Omit the steps after 600, since accuracy doens't change (straight line)
 real_title = "Real Data Accuracy"
 plot_real_accuracy(real, real_title)
+
+'''EXTRA'''
+# fake_old = np.load('Saved Metric Values\\fake_old_accuracy.npy')[2390:]
+# fake_new_title = "Fake Data Accuracy"
+# plot_gan_accuracy(fake_old, fake_new_title)

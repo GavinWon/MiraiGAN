@@ -1,13 +1,5 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Thu Sep 24 21:01:02 2020
 
-@author: Gavin
 """
-# -*- coding: utf-8 -*-
-"""
-Created on Sun Aug 16 18:26:10 2020
-
 @author: Gavin
 """
 
@@ -49,24 +41,7 @@ from tensorflow.keras.layers import Conv2DTranspose, Lambda
 
 '''                         GAN STRURCTURE                                 '''
 
-def Conv1DTranspose(input_tensor, filters, kernel_size, strides=2, padding='same'):
-    """
-        input_tensor: tensor, with the shape (batch_size, time_steps, dims)
-        filters: int, output dimension, i.e. the output tensor will have the shape of (batch_size, time_steps, filters)
-        kernel_size: int, size of the convolution kernel
-        strides: int, convolution step size
-        padding: 'same' | 'valid'
-    """
-    x = Lambda(lambda x: K.expand_dims(x, axis=2))(input_tensor)
-    x = Conv2DTranspose(filters=filters, kernel_size=(kernel_size, 1), strides=(strides, 1), padding=padding)(x)
-    x = Lambda(lambda x: K.squeeze(x, axis=2))(x)
-    return x
-
-def custom_activation(output):
-	logexpsum = np.sum(np.exp(output))
-	result = logexpsum / (logexpsum + 1.0)
-	return result
-
+'''Construct generator model with given seed_size'''
 def build_generator(seed_size):
     
     in_value = Input(shape=seed_size)
@@ -83,11 +58,12 @@ def build_generator(seed_size):
     batch3 = BatchNormalization()(hidden3) #momentum=0.8
     relu3 = LeakyReLU(alpha=0.2)(batch3)
     
-    out_value = Dense(30)(relu3) #activation linear or relu?
+    out_value = Dense(30)(relu3)
     model = Model(in_value, out_value)
     
     return model
    
+    #EXTRA/TEST
     # Output resolution, additional upsampling
     # model.add(Conv2D(128,kernel_size=3,padding="same")) #padding=same
     # model.add(BatchNormalization(momentum=0.8))
@@ -96,7 +72,8 @@ def build_generator(seed_size):
     # Final CNN layer
     # model.add(Activation("tanh"))
 
-def build_disc_ip(input_shape=(1214,)): #change input_shape later
+'''Helper MLP for dealing with IP within the Discriminator'''
+def build_ip_disc(input_shape=(1214,)): #change input_shape later
     
     in_value = Input(shape=input_shape)
     hidden1 = Dense(units=80, activation='relu')(in_value)
@@ -107,11 +84,9 @@ def build_disc_ip(input_shape=(1214,)): #change input_shape later
     model = Model(inputs=[in_value], outputs=[output])
     # model.compile(loss='linear', optimizer=Adam(lr=0.0001, beta_1=0.5))
     
-
-    
-    
     return model
 
+'''Main discriminator component'''
 def build_main_disc(input_shape=(30,)): #in_shape=(30,1)
     
 
@@ -154,7 +129,7 @@ def build_main_disc(input_shape=(30,)): #in_shape=(30,1)
    
     
 
-# building the disciminator combining main and ip discriminator
+'''Build a whole discriminator model combining the IP Discriminator and Main Discriminator'''
 def build_discriminator(ip_disc, main_disc, inputShape_ip = (1214,), inputShape_other = (10,)):
     
     # main_disc.trainable = False
@@ -178,7 +153,7 @@ def build_discriminator(ip_disc, main_disc, inputShape_ip = (1214,), inputShape_
     
 
 
-# define the combined generator and discriminator model, for updating the generator
+'''Build the entire GAN connecting Discriminator and Generator'''
 def define_gan(g_model, d_model):
 	# make weights in the discriminator not trainable
 	d_model.trainable = False
@@ -191,10 +166,10 @@ def define_gan(g_model, d_model):
 	model.compile(loss='binary_crossentropy', optimizer=opt)
 	return model
 
+
 '''           GETTING AND GENERATING REAL/FAKE SAMPLES                    '''
 
-    
-# select a supervised subset of the dataset
+'''Select a supervised subset of the dataset'''
 def get_real_samples(dataset, n_samples=100):
 	# split into X and Y
 	X, y = dataset
@@ -206,7 +181,7 @@ def get_real_samples(dataset, n_samples=100):
 	y_other = ones((n_samples, 1)) #1 = REAL DATA
 	return X_sample, y_other  
 
-# generate points in latent space as input for the generator
+'''Generate points in latent space as input for the generator'''
 def generate_latent_points(latent_dim, n_samples):
 	# generate points in the latent space
 	z_input = randn(latent_dim * n_samples)
@@ -214,7 +189,7 @@ def generate_latent_points(latent_dim, n_samples):
 	z_input = z_input.reshape(n_samples, latent_dim)
 	return z_input
 
-# use the generator to generate n fake examples, with class labels
+'''Use the generator to generate n fake examples, with class labels'''
 def generate_fake_samples(generator, latent_dim, n_samples):
 	# generate points in latent space
 	z_input = generate_latent_points(latent_dim, n_samples)
@@ -290,7 +265,9 @@ def plot_loss(h):
     plt.legend(['loss', 'val loss' ], loc='upper left')
     plt.show()
 
-    
+
+
+'''EXTRA/TEST'''
 # def desc_ip:
     # model = Sequential()
     # model.add(Dense(32, activation='relu', input_shape = (1224,1)))
